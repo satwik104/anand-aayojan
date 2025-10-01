@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useState } from 'react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { LogoFull } from '@/components/Logo';
 
 const Header = () => {
   const navigate = useNavigate();
@@ -21,12 +22,10 @@ const Header = () => {
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary">
-              <span className="text-xl font-bold text-primary-foreground">आ</span>
-            </div>
-            <span className="hidden text-xl font-bold text-foreground sm:block font-serif">
-              AnandAyojan
-            </span>
+            <LogoFull 
+              iconClassName="h-10 w-10 text-primary" 
+              textClassName="hidden text-xl font-bold text-foreground sm:block font-serif" 
+            />
           </Link>
 
           {/* Desktop Navigation */}
