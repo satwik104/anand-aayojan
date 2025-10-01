@@ -11,6 +11,7 @@ const Header = () => {
   const [searchOpen, setSearchOpen] = useState(false);
 
   const navLinks = [
+    { name: 'Home', path: '/' },
     { name: 'Services', path: '/services' },
     { name: 'My Bookings', path: '/my-bookings' },
     { name: 'Admin', path: '/admin' },
