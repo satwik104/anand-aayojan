@@ -9,9 +9,11 @@ interface ServiceCardProps {
 }
 
 const ServiceCard = ({ service }: ServiceCardProps) => {
+  const linkTo = service.id === 'shopping' ? '/products' : `/services/${service.id}`;
+
   return (
     <Card className="group overflow-hidden transition-all duration-300 hover:shadow-large hover:-translate-y-1">
-      <Link to={`/services/${service.id}`}>
+      <Link to={linkTo}>
         <div className="relative aspect-[4/3] overflow-hidden">
           <img
             src={service.image}
@@ -34,7 +36,7 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
           </div>
         </div>
 
-        <Link to={`/services/${service.id}`}>
+        <Link to={linkTo}>
           <h3 className="text-lg font-semibold mb-2 group-hover:text-primary transition-smooth font-serif">
             {service.name}
           </h3>
@@ -52,8 +54,8 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
 
       <CardFooter className="p-5 pt-0">
         <Button asChild className="w-full group/btn">
-          <Link to={`/services/${service.id}`}>
-            View Details
+          <Link to={linkTo}>
+            {service.id === 'shopping' ? 'Browse Products' : 'View Details'}
             <ArrowRight className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
           </Link>
         </Button>

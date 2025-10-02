@@ -138,4 +138,31 @@ All colors MUST be HSL.
   .transition-smooth {
     transition: var(--transition-smooth);
   }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  @keyframes scroll-left {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  .testimonial-scroll {
+    animation: scroll-left 40s linear infinite;
+  }
+
+  .testimonial-scroll:hover {
+    animation-play-state: paused;
+  }
+
+  @media (max-width: 640px) {
+    .testimonial-scroll {
+      animation-duration: 30s;
+    }
+  }
 }

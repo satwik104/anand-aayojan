@@ -17,6 +17,7 @@ import Contact from "./pages/Contact";
 import BookingSuccess from "./pages/BookingSuccess";
 import MyBookings from "./pages/MyBookings";
 import Admin from "./pages/Admin";
+import Partner from "./pages/Partner";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -43,6 +44,7 @@ const App = () => (
                   <Route path="/booking-success" element={<BookingSuccess />} />
                   <Route path="/my-bookings" element={<MyBookings />} />
                   <Route path="/admin" element={<Admin />} />
+                  <Route path="/partner" element={<Partner />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </main>

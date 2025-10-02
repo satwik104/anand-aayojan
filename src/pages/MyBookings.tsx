@@ -196,9 +196,9 @@ const MyBookings = () => {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                      <div className="flex items-center space-x-2 text-sm">
-                        <Calendar className="h-4 w-4 text-primary" />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
+                      <div className="flex items-center space-x-2 text-xs sm:text-sm">
+                        <Calendar className="h-4 w-4 text-primary flex-shrink-0" />
                         <span>
                           {new Date(booking.scheduledAt).toLocaleDateString('en-IN', {
                             weekday: 'short',
@@ -208,19 +208,19 @@ const MyBookings = () => {
                           })}
                         </span>
                       </div>
-                      <div className="flex items-center space-x-2 text-sm">
-                        <Clock className="h-4 w-4 text-primary" />
+                      <div className="flex items-center space-x-2 text-xs sm:text-sm">
+                        <Clock className="h-4 w-4 text-primary flex-shrink-0" />
                         <span>{booking.preferredTime}</span>
                       </div>
-                      <div className="flex items-center space-x-2 text-sm">
-                        <MapPin className="h-4 w-4 text-primary" />
+                      <div className="flex items-center space-x-2 text-xs sm:text-sm">
+                        <MapPin className="h-4 w-4 text-primary flex-shrink-0" />
                         <span>
                           {booking.city}, {booking.pincode}
                         </span>
                       </div>
-                      <div className="flex items-center space-x-2 text-sm">
+                      <div className="flex items-center space-x-2 text-xs sm:text-sm">
                         <span className="font-medium">Booking ID:</span>
-                        <span className="text-primary">{booking.id}</span>
+                        <span className="text-primary break-all">{booking.id}</span>
                       </div>
                     </div>
 

@@ -1,11 +1,28 @@
 import { Booking, BookingStatus, PaymentStatus, Service } from '@/types';
 import { services } from './services';
 
-// Mock API for easy backend integration later
+const BOOKINGS_STORAGE_KEY = 'anandayojan_bookings';
+
 export class MockApi {
-  private static bookings: Booking[] = [];
-  
-  // Services API
+  private static getBookingsFromStorage(): Booking[] {
+    if (typeof window === 'undefined') return [];
+    try {
+      const stored = localStorage.getItem(BOOKINGS_STORAGE_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  private static saveBookingsToStorage(bookings: Booking[]): void {
+    if (typeof window === 'undefined') return;
+    try {
+      localStorage.setItem(BOOKINGS_STORAGE_KEY, JSON.stringify(bookings));
+    } catch (error) {
+      console.error('Failed to save bookings:', error);
+    }
+  }
+
   static async getServices(): Promise<Service[]> {
     await this.delay(300);
     return services;
@@ -17,10 +34,11 @@ export class MockApi {
     return service || null;
   }
 
-  // Bookings API
   static async createBooking(bookingData: Partial<Booking>): Promise<{ bookingId: string; paymentUrl: string }> {
     await this.delay(500);
-    
+
+    const bookings = this.getBookingsFromStorage();
+
     const booking: Booking = {
       id: `BKG${Date.now()}`,
       ...bookingData as Booking,
@@ -29,9 +47,10 @@ export class MockApi {
       createdAt: new Date().toISOString(),
       scheduledAt: `${bookingData.preferredDate}T${bookingData.preferredTime}`,
     };
-    
-    this.bookings.push(booking);
-    
+
+    bookings.push(booking);
+    this.saveBookingsToStorage(bookings);
+
     return {
       bookingId: booking.id,
       paymentUrl: '/payment/mock',
@@ -40,18 +59,20 @@ export class MockApi {
 
   static async getBookingsByEmail(email: string): Promise<Booking[]> {
     await this.delay(300);
-    return this.bookings.filter(b => b.email === email);
+    const bookings = this.getBookingsFromStorage();
+    return bookings.filter(b => b.email === email);
   }
 
   static async getAllBookings(): Promise<Booking[]> {
     await this.delay(300);
-    return [...this.bookings];
+    return this.getBookingsFromStorage();
   }
 
   static async cancelBooking(bookingId: string): Promise<{ success: boolean; refundStatus: string; message: string }> {
     await this.delay(500);
-    
-    const booking = this.bookings.find(b => b.id === bookingId);
+
+    const bookings = this.getBookingsFromStorage();
+    const booking = bookings.find(b => b.id === bookingId);
     if (!booking) {
       throw new Error('Booking not found');
     }
@@ -73,6 +94,8 @@ export class MockApi {
     booking.refundStatus = 'processing';
     booking.paymentStatus = 'refunded';
 
+    this.saveBookingsToStorage(bookings);
+
     return {
       success: true,
       refundStatus: 'processing',
@@ -82,8 +105,9 @@ export class MockApi {
 
   static async markBookingComplete(bookingId: string): Promise<{ success: boolean }> {
     await this.delay(300);
-    
-    const booking = this.bookings.find(b => b.id === bookingId);
+
+    const bookings = this.getBookingsFromStorage();
+    const booking = bookings.find(b => b.id === bookingId);
     if (!booking) {
       throw new Error('Booking not found');
     }
@@ -91,13 +115,16 @@ export class MockApi {
     booking.status = 'completed';
     booking.completedAt = new Date().toISOString();
 
+    this.saveBookingsToStorage(bookings);
+
     return { success: true };
   }
 
   static async submitFeedback(bookingId: string, rating: number, comments: string): Promise<{ success: boolean }> {
     await this.delay(300);
-    
-    const booking = this.bookings.find(b => b.id === bookingId);
+
+    const bookings = this.getBookingsFromStorage();
+    const booking = bookings.find(b => b.id === bookingId);
     if (!booking) {
       throw new Error('Booking not found');
     }
@@ -108,19 +135,24 @@ export class MockApi {
       createdAt: new Date().toISOString(),
     };
 
+    this.saveBookingsToStorage(bookings);
+
     return { success: true };
   }
 
   static async processPayment(bookingId: string): Promise<{ success: boolean; paymentId: string }> {
     await this.delay(1000);
-    
-    const booking = this.bookings.find(b => b.id === bookingId);
+
+    const bookings = this.getBookingsFromStorage();
+    const booking = bookings.find(b => b.id === bookingId);
     if (!booking) {
       throw new Error('Booking not found');
     }
 
     booking.paymentStatus = 'paid';
     booking.status = 'confirmed';
+
+    this.saveBookingsToStorage(bookings);
 
     return {
       success: true,
@@ -132,8 +164,10 @@ export class MockApi {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
-  // Helper to seed some demo bookings
   static seedDemoBookings(userEmail: string = 'demo@anandayojan.com') {
+    const existing = this.getBookingsFromStorage();
+    if (existing.length > 0) return;
+
     const demoBookings: Booking[] = [
       {
         id: 'BKG1001',
@@ -177,11 +211,10 @@ export class MockApi {
       }
     ];
 
-    this.bookings = [...demoBookings];
+    this.saveBookingsToStorage(demoBookings);
   }
 }
 
-// Initialize with demo data
 if (typeof window !== 'undefined') {
   MockApi.seedDemoBookings();
 }

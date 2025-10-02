@@ -21,16 +21,16 @@ const Services = () => {
   return (
     <div className="min-h-screen gradient-festive py-12">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-12 animate-fade-in">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 font-serif">Our Services</h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+        <div className="text-center mb-8 sm:mb-12 animate-fade-in">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4 font-serif">Our Services</h1>
+          <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
             Browse our complete range of professional services for your events and celebrations
           </p>
         </div>
 
         {/* Filters */}
-        <div className="max-w-3xl mx-auto mb-12 animate-slide-up">
-          <div className="flex flex-col sm:flex-row gap-4">
+        <div className="max-w-3xl mx-auto mb-8 sm:mb-12 animate-slide-up">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
@@ -58,7 +58,7 @@ const Services = () => {
 
         {/* Services Grid */}
         {filteredServices.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {filteredServices.map((service, idx) => (
               <div key={service.id} className="animate-scale-in" style={{ animationDelay: `${idx * 50}ms` }}>
                 <ServiceCard service={service} />

@@ -64,6 +64,11 @@ const Footer = () => {
             <h3 className="font-semibold mb-4">Legal</h3>
             <ul className="space-y-2">
               <li>
+                <Link to="/partner" className="text-sm text-muted-foreground hover:text-primary transition-smooth">
+                  Be Our Partner
+                </Link>
+              </li>
+              <li>
                 <a href="#" className="text-sm text-muted-foreground hover:text-primary transition-smooth">
                   Terms & Conditions
                 </a>
@@ -76,11 +81,6 @@ const Footer = () => {
               <li>
                 <a href="#" className="text-sm text-muted-foreground hover:text-primary transition-smooth">
                   Refund Policy
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-sm text-muted-foreground hover:text-primary transition-smooth">
-                  Cancellation Policy
                 </a>
               </li>
             </ul>

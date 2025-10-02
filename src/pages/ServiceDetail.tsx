@@ -51,7 +51,7 @@ const ServiceDetail = () => {
             {/* Service Info */}
             <div className="animate-slide-up">
               <Badge className="mb-3">{service.category}</Badge>
-              <h1 className="text-4xl font-bold mb-4 font-serif">{service.name}</h1>
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 font-serif">{service.name}</h1>
               
               <div className="flex items-center space-x-4 mb-6">
                 <div className="flex items-center">
@@ -82,9 +82,9 @@ const ServiceDetail = () => {
                 </div>
               </div>
 
-              <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 mb-6">
-                <p className="text-sm font-medium mb-1">Starting from</p>
-                <p className="text-3xl font-bold text-primary">₹{service.startingPrice.toLocaleString()}</p>
+              <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 sm:p-4 mb-6">
+                <p className="text-xs sm:text-sm font-medium mb-1">Starting from</p>
+                <p className="text-2xl sm:text-3xl font-bold text-primary">₹{service.startingPrice.toLocaleString()}</p>
                 <p className="text-xs text-muted-foreground mt-1">Pay only 10% (₹{(service.startingPrice * 0.1).toLocaleString()}) to lock your booking</p>
               </div>
             </div>
@@ -92,8 +92,8 @@ const ServiceDetail = () => {
 
           {/* Features */}
           <div className="mb-12 animate-slide-up">
-            <h2 className="text-2xl font-bold mb-6 font-serif">Key Features</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 font-serif">Key Features</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
               {service.features.map((feature, idx) => (
                 <div key={idx} className="flex items-center space-x-2">
                   <Check className="h-5 w-5 text-primary flex-shrink-0" />
@@ -105,8 +105,8 @@ const ServiceDetail = () => {
 
           {/* Packages */}
           <div className="mb-12 animate-fade-in">
-            <h2 className="text-2xl font-bold mb-6 font-serif">Choose Your Package</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 font-serif">Choose Your Package</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {service.packages.map((pkg) => (
                 <Card key={pkg.id} className={`relative ${pkg.popular ? 'border-primary shadow-gold' : ''}`}>
                   {pkg.popular && (
@@ -114,12 +114,12 @@ const ServiceDetail = () => {
                       <Badge className="gradient-primary text-white">Most Popular</Badge>
                     </div>
                   )}
-                  <CardContent className="p-6">
-                    <h3 className="text-xl font-bold mb-2 font-serif">{pkg.name}</h3>
-                    <p className="text-sm text-muted-foreground mb-4">{pkg.description}</p>
-                    
+                  <CardContent className="p-4 sm:p-6">
+                    <h3 className="text-lg sm:text-xl font-bold mb-2 font-serif">{pkg.name}</h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground mb-4">{pkg.description}</p>
+
                     <div className="mb-4">
-                      <p className="text-3xl font-bold text-primary">₹{pkg.price.toLocaleString()}</p>
+                      <p className="text-2xl sm:text-3xl font-bold text-primary">₹{pkg.price.toLocaleString()}</p>
                       {pkg.duration && <p className="text-sm text-muted-foreground">{pkg.duration}</p>}
                       <p className="text-xs text-muted-foreground mt-1">
                         Lock for ₹{(pkg.price * 0.1).toLocaleString()} (10%)
@@ -177,7 +177,7 @@ const ServiceDetail = () => {
 
       {/* Booking Form Dialog */}
       <Dialog open={bookingOpen} onOpenChange={setBookingOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full">
           <BookingForm
             service={service}
             selectedPackageId={selectedPackage}
