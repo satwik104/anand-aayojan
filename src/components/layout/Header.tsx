@@ -1,20 +1,24 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, ShoppingBag, User, Menu } from 'lucide-react';
+import { Search, User, Menu, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useState } from 'react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { LogoFull } from '@/components/Logo';
+import Cart from '@/components/Cart';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Header = () => {
   const navigate = useNavigate();
+  const { user, isAuthenticated, logout } = useAuth();
   const [searchOpen, setSearchOpen] = useState(false);
 
   const navLinks = [
     { name: 'Home', path: '/' },
     { name: 'Services', path: '/services' },
-    { name: 'My Bookings', path: '/my-bookings' },
-    { name: 'Admin', path: '/admin' },
+    { name: 'Products', path: '/products' },
+    { name: 'Contact', path: '/contact' },
   ];
 
   return (
@@ -66,14 +70,36 @@ const Header = () => {
               </Button>
             )}
 
+            {/* Cart */}
+            <Cart />
+
             {/* User Menu */}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate('/my-bookings')}
-            >
-              <User className="h-5 w-5" />
-            </Button>
+            {isAuthenticated ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <User className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>
+                    {user?.name}
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => navigate('/my-bookings')}>
+                    My Bookings
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={logout} className="text-destructive">
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button variant="outline" size="sm" onClick={() => navigate('/auth')}>
+                Login
+              </Button>
+            )}
 
             {/* Mobile Menu */}
             <Sheet>
