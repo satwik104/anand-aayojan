@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, Shield, Clock, Star, ArrowRight, Sparkles } from 'lucide-react';
+import { CircleCheck as CheckCircle, Shield, Clock, Star, ArrowRight, Sparkles } from 'lucide-react';
 import ServiceCard from '@/components/ServiceCard';
 import { services } from '@/data/services';
 import heroImage from '@/assets/hero-wedding.jpg';
