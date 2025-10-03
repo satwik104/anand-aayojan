@@ -93,8 +93,9 @@ const Header = () => {
               </Button>
             )}
 
-            {/* Cart */}
-            <Cart />
+
+            {/* Cart - Only show when logged in */}
+            {isAuthenticated && <Cart />}
 
             {/* User Menu */}
             {isAuthenticated ? (

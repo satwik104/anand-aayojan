@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom';
 import { Facebook, Instagram, Twitter, Mail, Phone, MapPin } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Footer = () => {
+  const { isAuthenticated } = useAuth();
   const currentYear = new Date().getFullYear();
 
   return (
@@ -41,11 +43,13 @@ const Footer = () => {
                   Our Services
                 </Link>
               </li>
-              <li>
-                <Link to="/my-bookings" className="text-sm text-muted-foreground hover:text-primary transition-smooth">
-                  My Bookings
-                </Link>
-              </li>
+              {isAuthenticated && (
+                <li>
+                  <Link to="/my-bookings" className="text-sm text-muted-foreground hover:text-primary transition-smooth">
+                    My Bookings
+                  </Link>
+                </li>
+              )}
               <li>
                 <a href="#" className="text-sm text-muted-foreground hover:text-primary transition-smooth">
                   How It Works

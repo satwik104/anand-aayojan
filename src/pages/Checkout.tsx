@@ -59,10 +59,11 @@ const Checkout = () => {
 
       // Initiate Razorpay payment
       initiateRazorpayPayment({
-        amount: totalAmount + shipping,
+        orderId: response.razorpayOrder.id,
+        amount: (totalAmount + shipping) * 100, // Convert to paise
+        currency: 'INR',
         name: 'AnandAyojan',
         description: 'Bhaat & Mayera Order',
-        orderId: response.razorpayOrder.id,
         prefill: {
           name: user.name,
           email: user.email,
