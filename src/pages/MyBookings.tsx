@@ -11,12 +11,13 @@ import { Booking } from '@/types';
 import { MockApi } from '@/data/mockApi';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { useAuth } from '@/contexts/AuthContext';
+import { bookingsApi } from '@/services/api';
 
 const MyBookings = () => {
+  const { user, isAuthenticated } = useAuth();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
-  const [email, setEmail] = useState('demo@anandayojan.com'); // Demo email
-  const [emailSubmitted, setEmailSubmitted] = useState(false);
   const [cancelBookingId, setCancelBookingId] = useState<string | null>(null);
   const [feedbackBooking, setFeedbackBooking] = useState<Booking | null>(null);
   const [rating, setRating] = useState(5);
@@ -24,16 +25,16 @@ const MyBookings = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (emailSubmitted) {
+    if (isAuthenticated) {
       loadBookings();
     }
-  }, [emailSubmitted]);
+  }, [isAuthenticated]);
 
   const loadBookings = async () => {
     setLoading(true);
     try {
-      const data = await MockApi.getBookingsByEmail(email);
-      setBookings(data);
+      const response = await bookingsApi.getAll();
+      setBookings(response.bookings || []);
     } catch (error) {
       toast({
         title: 'Error',
@@ -42,13 +43,6 @@ const MyBookings = () => {
       });
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleEmailSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (email) {
-      setEmailSubmitted(true);
     }
   };
 
@@ -63,20 +57,12 @@ const MyBookings = () => {
     if (!cancelBookingId) return;
 
     try {
-      const result = await MockApi.cancelBooking(cancelBookingId);
-      if (result.success) {
-        toast({
-          title: 'Booking Cancelled',
-          description: result.message,
-        });
-        loadBookings();
-      } else {
-        toast({
-          title: 'Cannot Cancel',
-          description: result.message,
-          variant: 'destructive',
-        });
-      }
+      await bookingsApi.cancel(cancelBookingId);
+      toast({
+        title: 'Booking Cancelled',
+        description: 'Your booking has been cancelled successfully',
+      });
+      loadBookings();
     } catch (error) {
       toast({
         title: 'Error',
@@ -120,49 +106,13 @@ const MyBookings = () => {
     return <Badge variant={variant}>{label}</Badge>;
   };
 
-  if (!emailSubmitted) {
-    return (
-      <div className="min-h-screen gradient-festive flex items-center justify-center py-12 px-4">
-        <Card className="max-w-md w-full shadow-large">
-          <CardHeader>
-            <CardTitle className="text-center font-serif">View My Bookings</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleEmailSubmit} className="space-y-4">
-              <div>
-                <Label htmlFor="email">Enter your email address</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="your.email@example.com"
-                  required
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  We'll show all bookings associated with this email
-                </p>
-              </div>
-              <Button type="submit" className="w-full">View Bookings</Button>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen gradient-festive py-12">
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto">
-          <div className="flex items-center justify-between mb-8 animate-fade-in">
-            <div>
-              <h1 className="text-3xl font-bold font-serif">My Bookings</h1>
-              <p className="text-muted-foreground">Manage your service bookings</p>
-            </div>
-            <Button variant="outline" onClick={() => setEmailSubmitted(false)}>
-              Change Email
-            </Button>
+          <div className="mb-8 animate-fade-in">
+            <h1 className="text-3xl font-bold font-serif">My Bookings</h1>
+            <p className="text-muted-foreground">Manage your service bookings</p>
           </div>
 
           {loading ? (

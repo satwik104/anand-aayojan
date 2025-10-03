@@ -16,6 +16,9 @@ import Auth from "./pages/Auth";
 import Contact from "./pages/Contact";
 import BookingSuccess from "./pages/BookingSuccess";
 import MyBookings from "./pages/MyBookings";
+import MyOrders from "./pages/MyOrders";
+import Checkout from "./pages/Checkout";
+import Wishlist from "./pages/Wishlist";
 import Admin from "./pages/Admin";
 import Partner from "./pages/Partner";
 import NotFound from "./pages/NotFound";
@@ -43,6 +46,9 @@ const App = () => (
                   <Route path="/contact" element={<Contact />} />
                   <Route path="/booking-success" element={<BookingSuccess />} />
                   <Route path="/my-bookings" element={<MyBookings />} />
+                  <Route path="/my-orders" element={<MyOrders />} />
+                  <Route path="/checkout" element={<Checkout />} />
+                  <Route path="/wishlist" element={<Wishlist />} />
                   <Route path="/admin" element={<Admin />} />
                   <Route path="/partner" element={<Partner />} />
                   <Route path="*" element={<NotFound />} />

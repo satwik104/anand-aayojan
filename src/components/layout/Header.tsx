@@ -21,63 +21,48 @@ const Header = () => {
     { name: 'Contact', path: '/contact' },
   ];
 
-  const authenticatedLinks = [
-    { name: 'My Bookings', path: '/my-bookings' },
-    { name: 'My Orders', path: '/my-orders' },
-    { name: 'Wishlist', path: '/wishlist' },
-  ];
-
   const partnerLink = { name: 'Be Our Partner', path: '/partner' };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-card shadow-soft">
       <div className="container mx-auto px-4">
-        <div className="flex h-16 items-center justify-between">
+        <div className="flex h-16 items-center justify-between gap-4">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
+          <Link to="/" className="flex items-center space-x-2 flex-shrink-0">
             <LogoFull 
-              iconClassName="h-10 w-10 text-primary" 
-              textClassName="hidden text-xl font-bold text-foreground sm:block font-serif" 
+              iconClassName="h-8 w-8 sm:h-10 sm:w-10 text-primary" 
+              textClassName="hidden sm:block text-lg sm:text-xl font-bold text-foreground font-serif" 
             />
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-6">
+          <nav className="hidden lg:flex items-center space-x-4 xl:space-x-6">
             {navLinks.map((link) => (
               <Link
                 key={link.path}
                 to={link.path}
-                className="text-sm font-medium text-foreground/80 hover:text-primary transition-smooth"
-              >
-                {link.name}
-              </Link>
-            ))}
-            {isAuthenticated && authenticatedLinks.map((link) => (
-              <Link
-                key={link.path}
-                to={link.path}
-                className="text-sm font-medium text-foreground/80 hover:text-primary transition-smooth"
+                className="text-sm font-medium text-foreground/80 hover:text-primary transition-smooth whitespace-nowrap"
               >
                 {link.name}
               </Link>
             ))}
             <Link
               to={partnerLink.path}
-              className="text-sm font-medium text-foreground/80 hover:text-primary transition-smooth"
+              className="text-sm font-medium text-foreground/80 hover:text-primary transition-smooth whitespace-nowrap"
             >
               {partnerLink.name}
             </Link>
           </nav>
 
           {/* Right Actions */}
-          <div className="flex items-center space-x-2">
-            {/* Search */}
+          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+            {/* Search - Hidden on mobile */}
             {searchOpen ? (
               <div className="flex items-center space-x-2 animate-fade-in">
                 <Input
                   type="search"
-                  placeholder="Search services..."
-                  className="w-40 sm:w-64"
+                  placeholder="Search..."
+                  className="w-32 sm:w-64"
                   autoFocus
                   onBlur={() => setTimeout(() => setSearchOpen(false), 200)}
                 />
@@ -93,21 +78,23 @@ const Header = () => {
               </Button>
             )}
 
-
             {/* Cart - Only show when logged in */}
             {isAuthenticated && <Cart />}
 
-            {/* User Menu */}
+            {/* User Profile Dropdown */}
             {isAuthenticated ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon">
+                  <Button variant="ghost" size="icon" className="flex-shrink-0">
                     <User className="h-5 w-5" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>
-                    {user?.name}
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">{user?.name}</p>
+                      <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
+                    </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => navigate('/my-bookings')}>
@@ -127,23 +114,20 @@ const Header = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button variant="outline" size="sm" onClick={() => navigate('/auth')}>
+              <Button variant="outline" size="sm" onClick={() => navigate('/auth')} className="flex-shrink-0">
                 Login
               </Button>
             )}
 
             {/* Mobile Menu */}
             <Sheet>
-              <SheetTrigger asChild className="md:hidden">
-                <Button variant="ghost" size="icon">
+              <SheetTrigger asChild className="lg:hidden">
+                <Button variant="ghost" size="icon" className="flex-shrink-0">
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
               <SheetContent>
                 <div className="flex flex-col space-y-4 mt-8">
-                  <Link to="/" className="text-lg font-medium font-serif">
-                    Home
-                  </Link>
                   {navLinks.map((link) => (
                     <Link
                       key={link.path}
@@ -153,22 +137,6 @@ const Header = () => {
                       {link.name}
                     </Link>
                   ))}
-                  {isAuthenticated && (
-                    <>
-                      <div className="border-t pt-4">
-                        <p className="text-xs text-muted-foreground uppercase mb-2">My Account</p>
-                        {authenticatedLinks.map((link) => (
-                          <Link
-                            key={link.path}
-                            to={link.path}
-                            className="text-lg font-medium text-foreground/80 block py-2"
-                          >
-                            {link.name}
-                          </Link>
-                        ))}
-                      </div>
-                    </>
-                  )}
                   <Link
                     to={partnerLink.path}
                     className="text-lg font-medium text-primary"
