@@ -1,280 +1,213 @@
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
+import { Mail, Phone, MapPin, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
-import { sendContactToSheet } from '@/lib/webhooks';
-import { Mail, Phone, MapPin, Send } from 'lucide-react';
+import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
-
-const contactSchema = z.object({
-  name: z.string().trim().min(2, 'Name must be at least 2 characters').max(100, 'Name too long'),
-  email: z.string().trim().email('Invalid email address').max(255, 'Email too long'),
-  phone: z.string().trim().regex(/^[6-9]\d{9}$/, 'Invalid phone number (10 digits)'),
-  subject: z.string().trim().min(5, 'Subject must be at least 5 characters').max(200, 'Subject too long'),
-  message: z.string().trim().min(10, 'Message must be at least 10 characters').max(1000, 'Message too long'),
-  type: z.enum(['query', 'complaint', 'feedback']),
-});
-
-type ContactFormData = z.infer<typeof contactSchema>;
+import { proxyApi } from '@/services/api';
+import { useAuthGate } from '@/components/AuthGate';
 
 const Contact = () => {
-  const { toast } = useToast();
   const { user } = useAuth();
+  const { requireAuth, AuthModal } = useAuthGate();
+  
+  const [formData, setFormData] = useState({
+    name: user?.name || '',
+    email: user?.email || '',
+    phone: user?.phone || '',
+    subject: '',
+    type: 'query',
+    message: '',
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const form = useForm<ContactFormData>({
-    resolver: zodResolver(contactSchema),
-    defaultValues: {
-      name: user?.name || '',
-      email: user?.email || '',
-      phone: user?.phone || '',
-      subject: '',
-      message: '',
-      type: 'query',
-    },
-  });
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
-  const onSubmit = async (data: ContactFormData) => {
-    setIsSubmitting(true);
-
-    try {
-      // Send to Google Sheets via webhook
-      const result = await sendContactToSheet({
-        name: data.name,
-        email: data.email,
-        phone: data.phone,
-        subject: data.subject,
-        message: data.message,
-        type: data.type,
-        createdAt: new Date().toISOString(),
-      });
-
-      if (result.success) {
-        toast({
-          title: 'Message sent! ✉️',
-          description: 'Thank you for contacting us. We\'ll get back to you soon.',
-        });
-
-        form.reset({
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    requireAuth(async () => {
+      setIsSubmitting(true);
+      try {
+        await proxyApi.appsScript('contact', formData);
+        toast.success('Message sent successfully! We will get back to you soon.');
+        
+        setFormData({
           name: user?.name || '',
           email: user?.email || '',
           phone: user?.phone || '',
           subject: '',
-          message: '',
           type: 'query',
+          message: '',
         });
-      } else {
-        throw new Error(result.error || 'Failed to send message');
+      } catch (error) {
+        toast.error('Failed to send message. Please try again.');
+      } finally {
+        setIsSubmitting(false);
       }
-    } catch (error) {
-      toast({
-        title: 'Failed to send message',
-        description: 'Something went wrong. Please try again.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+    }, 'send your message');
   };
 
   return (
-    <div className="min-h-screen py-12">
-      <div className="container mx-auto px-4">
-        <div className="max-w-5xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold font-serif mb-4">Contact Us</h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Have questions or need assistance? We're here to help. Reach out to us anytime.
-            </p>
+    <div className="min-h-screen bg-background py-12 px-4">
+      <div className="max-w-6xl mx-auto">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold mb-4">Contact Us</h1>
+          <p className="text-lg text-muted-foreground">
+            Have questions? We're here to help!
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-12">
+          {/* Contact Form */}
+          <div className="bg-card border rounded-lg p-6">
+            <h2 className="text-2xl font-bold mb-6">Send us a Message</h2>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <Label htmlFor="name">Name *</Label>
+                <Input
+                  id="name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                  placeholder="Your name"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="email">Email *</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                  placeholder="your.email@example.com"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="phone">Phone *</Label>
+                <Input
+                  id="phone"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  required
+                  placeholder="10-digit mobile number"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="type">Query Type *</Label>
+                <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="query">General Query</SelectItem>
+                    <SelectItem value="complaint">Complaint</SelectItem>
+                    <SelectItem value="feedback">Feedback</SelectItem>
+                    <SelectItem value="partnership">Partnership</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="subject">Subject *</Label>
+                <Input
+                  id="subject"
+                  name="subject"
+                  value={formData.subject}
+                  onChange={handleChange}
+                  required
+                  placeholder="Brief subject"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="message">Message *</Label>
+                <Textarea
+                  id="message"
+                  name="message"
+                  value={formData.message}
+                  onChange={handleChange}
+                  required
+                  placeholder="Tell us more..."
+                  rows={5}
+                />
+              </div>
+
+              <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
+                <Send className="w-4 h-4 mr-2" />
+                {isSubmitting ? 'Sending...' : 'Send Message'}
+              </Button>
+            </form>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Contact Information */}
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Get in Touch</CardTitle>
-                  <CardDescription>We're available to assist you</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <Phone className="h-5 w-5 text-primary mt-0.5" />
-                    <div>
-                      <p className="font-medium">Phone</p>
-                      <p className="text-sm text-muted-foreground">+91 98765 43210</p>
-                      <p className="text-sm text-muted-foreground">Mon-Sat, 9 AM - 7 PM</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3">
-                    <Mail className="h-5 w-5 text-primary mt-0.5" />
-                    <div>
-                      <p className="font-medium">Email</p>
-                      <p className="text-sm text-muted-foreground">support@anandayojan.com</p>
-                      <p className="text-sm text-muted-foreground">We'll respond within 24 hours</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3">
-                    <MapPin className="h-5 w-5 text-primary mt-0.5" />
-                    <div>
-                      <p className="font-medium">Office</p>
-                      <p className="text-sm text-muted-foreground">
-                        123, Event Plaza, MG Road<br />
-                        Pune, Maharashtra 411001
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-primary/5 border-primary/20">
-                <CardContent className="p-4">
-                  <p className="text-sm">
-                    <strong>💡 Quick Tip:</strong> For booking-related queries, please mention your Booking ID in the message for faster resolution.
-                  </p>
-                </CardContent>
-              </Card>
+          {/* Contact Information */}
+          <div className="space-y-8">
+            <div>
+              <h2 className="text-2xl font-bold mb-6">Get in Touch</h2>
+              <p className="text-muted-foreground mb-6">
+                We're available to answer your questions and help you plan your perfect event.
+              </p>
             </div>
 
-            {/* Contact Form */}
-            <div className="lg:col-span-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Send us a Message</CardTitle>
-                  <CardDescription>
-                    Fill out the form below and we'll get back to you as soon as possible
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <FormField
-                          control={form.control}
-                          name="name"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Name *</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Your full name" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+            <div className="space-y-6">
+              <div className="flex items-start gap-4">
+                <div className="bg-primary/10 p-3 rounded-lg">
+                  <Phone className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold mb-1">Phone</h3>
+                  <p className="text-muted-foreground">+91 98765 43210</p>
+                  <p className="text-sm text-muted-foreground">Mon-Sat, 9 AM - 7 PM</p>
+                </div>
+              </div>
 
-                        <FormField
-                          control={form.control}
-                          name="phone"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Phone *</FormLabel>
-                              <FormControl>
-                                <Input placeholder="10-digit mobile number" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
+              <div className="flex items-start gap-4">
+                <div className="bg-primary/10 p-3 rounded-lg">
+                  <Mail className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold mb-1">Email</h3>
+                  <p className="text-muted-foreground">support@anandayojan.com</p>
+                  <p className="text-sm text-muted-foreground">We'll respond within 24 hours</p>
+                </div>
+              </div>
 
-                      <FormField
-                        control={form.control}
-                        name="email"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Email *</FormLabel>
-                            <FormControl>
-                              <Input type="email" placeholder="your.email@example.com" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+              <div className="flex items-start gap-4">
+                <div className="bg-primary/10 p-3 rounded-lg">
+                  <MapPin className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold mb-1">Office</h3>
+                  <p className="text-muted-foreground">
+                    Vaishali Nagar<br />
+                    Jaipur, Rajasthan 302021
+                  </p>
+                </div>
+              </div>
+            </div>
 
-                      <FormField
-                        control={form.control}
-                        name="type"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Type *</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select type" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="query">General Query</SelectItem>
-                                <SelectItem value="complaint">Complaint</SelectItem>
-                                <SelectItem value="feedback">Feedback</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="subject"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Subject *</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Brief subject of your message" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="message"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Message *</FormLabel>
-                            <FormControl>
-                              <Textarea
-                                placeholder="Please provide detailed information..."
-                                rows={6}
-                                className="resize-none"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <Button type="submit" className="w-full" disabled={isSubmitting}>
-                        {isSubmitting ? (
-                          'Sending...'
-                        ) : (
-                          <>
-                            <Send className="h-4 w-4 mr-2" />
-                            Send Message
-                          </>
-                        )}
-                      </Button>
-                    </form>
-                  </Form>
-                </CardContent>
-              </Card>
+            <div className="bg-primary/5 border border-primary/20 rounded-lg p-6">
+              <h3 className="font-semibold mb-2">Quick Response Guarantee</h3>
+              <p className="text-sm text-muted-foreground">
+                We aim to respond to all queries within 24 hours. For urgent matters, please call us directly.
+              </p>
             </div>
           </div>
         </div>
       </div>
+      <AuthModal />
     </div>
   );
 };

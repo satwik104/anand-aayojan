@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import GoogleSignIn from './GoogleSignIn';
 
 interface AuthGateProps {
-  children: (execute: () => void) => React.ReactNode;
+  children: (execute: (action: () => void) => void) => React.ReactNode;
   onAuthenticated?: () => void;
   actionName?: string;
 }

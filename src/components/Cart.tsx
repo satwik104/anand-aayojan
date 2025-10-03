@@ -6,23 +6,26 @@ import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { ShoppingCart, Trash2, Plus, Minus, Package } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { useState } from 'react';
 
 const Cart = () => {
   const { items, totalItems, removeItem, updateQuantity, serviceLockingTotal, productTotal, subtotal } = useCart();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const [isOpen, setIsOpen] = useState(false);
 
   const handleCheckout = () => {
     if (!isAuthenticated) {
       navigate('/auth', { state: { from: { pathname: '/checkout' } } });
+      setIsOpen(false);
       return;
     }
-    // Navigate to checkout (to be implemented)
-    alert('Checkout functionality will be implemented with Razorpay integration');
+    setIsOpen(false);
+    navigate('/checkout');
   };
 
   return (
-    <Sheet>
+    <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
         <Button variant="ghost" size="icon" className="relative">
           <ShoppingCart className="h-5 w-5" />

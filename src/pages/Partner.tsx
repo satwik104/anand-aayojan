@@ -1,285 +1,270 @@
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { Card, CardContent } from '@/components/ui/card';
+import { Handshake, Users, TrendingUp, Award, CheckCircle, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CircleCheck as CheckCircle, Handshake, TrendingUp, Users, Shield, ArrowRight } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-
-const partnerSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  phone: z.string().regex(/^[6-9]\d{9}$/, 'Invalid phone number'),
-  city: z.string().min(2, 'City is required'),
-  serviceType: z.string().min(1, 'Service type is required'),
-  message: z.string().optional(),
-});
-
-type PartnerFormData = z.infer<typeof partnerSchema>;
+import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
+import { proxyApi } from '@/services/api';
+import { useAuthGate } from '@/components/AuthGate';
 
 const Partner = () => {
-  const { toast } = useToast();
+  const { user } = useAuth();
+  const { requireAuth, AuthModal } = useAuthGate();
+  
+  const [formData, setFormData] = useState({
+    name: user?.name || '',
+    email: user?.email || '',
+    phone: user?.phone || '',
+    businessName: '',
+    serviceType: '',
+    experience: '',
+    city: '',
+    message: '',
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const form = useForm<PartnerFormData>({
-    resolver: zodResolver(partnerSchema),
-    defaultValues: {
-      name: '',
-      phone: '',
-      city: '',
-      serviceType: '',
-      message: '',
-    },
-  });
-
-  const onSubmit = async (data: PartnerFormData) => {
-    setIsSubmitting(true);
-    setTimeout(() => {
-      toast({
-        title: 'Application Submitted!',
-        description: 'Thank you for your interest. Our team will contact you within 24 hours.',
-      });
-      form.reset();
-      setIsSubmitting(false);
-    }, 1500);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const serviceTypes = [
-    'Mehndi Artist',
-    'Dhol & Music',
-    'Decoration',
-    'Pandit Ji',
-    'Beauty & Makeup',
-    'Photography',
-    'Helper Services',
-    'Catering',
-    'Event Planning',
-    'Other',
-  ];
-
-  const benefits = [
-    {
-      icon: Users,
-      title: 'Expand Your Reach',
-      description: 'Connect with thousands of customers actively looking for quality service providers',
-    },
-    {
-      icon: TrendingUp,
-      title: 'Grow Your Business',
-      description: 'Get consistent bookings and increase your revenue with our marketing support',
-    },
-    {
-      icon: Shield,
-      title: 'Verified Badge',
-      description: 'Receive a verified professional badge that builds customer trust and credibility',
-    },
-    {
-      icon: CheckCircle,
-      title: 'Secure Payments',
-      description: 'Guaranteed payments with our secure payment system and transparent pricing',
-    },
-  ];
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    requireAuth(async () => {
+      setIsSubmitting(true);
+      try {
+        await proxyApi.appsScript('partner', formData);
+        toast.success('Application submitted successfully! We will review and contact you soon.');
+        
+        setFormData({
+          name: user?.name || '',
+          email: user?.email || '',
+          phone: user?.phone || '',
+          businessName: '',
+          serviceType: '',
+          experience: '',
+          city: '',
+          message: '',
+        });
+      } catch (error) {
+        toast.error('Failed to submit application. Please try again.');
+      } finally {
+        setIsSubmitting(false);
+      }
+    }, 'submit your partner application');
+  };
 
   return (
-    <div className="min-h-screen gradient-festive py-12">
-      <div className="container mx-auto px-4">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12 animate-fade-in">
-            <div className="flex items-center justify-center mb-4">
-              <Handshake className="h-12 w-12 sm:h-16 sm:w-16 text-primary" />
+    <div className="min-h-screen bg-background py-12 px-4">
+      <div className="max-w-6xl mx-auto">
+        {/* Hero Section */}
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-full mb-4">
+            <Handshake className="w-5 h-5 text-primary" />
+            <span className="text-sm font-medium">Partner With Us</span>
+          </div>
+          <h1 className="text-4xl font-bold mb-4">Grow Your Business with AnandAyojan</h1>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Join our network of verified service providers and reach thousands of customers looking for quality event services
+          </p>
+        </div>
+
+        {/* Benefits Grid */}
+        <div className="grid md:grid-cols-3 gap-6 mb-12">
+          <div className="bg-card border rounded-lg p-6">
+            <div className="bg-primary/10 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+              <Users className="w-6 h-6 text-primary" />
             </div>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 font-serif">
-              Partner with AnandAyojan
-            </h1>
-            <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto px-4">
-              Join India's fastest-growing event services platform and take your business to the next level.
-              We connect verified professionals with customers who value quality and reliability.
+            <h3 className="text-xl font-bold mb-2">Large Customer Base</h3>
+            <p className="text-muted-foreground">
+              Get access to thousands of customers actively looking for services like yours
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 mb-12">
-            <div className="animate-slide-up">
-              <h2 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 font-serif">Why Partner with Us?</h2>
+          <div className="bg-card border rounded-lg p-6">
+            <div className="bg-primary/10 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+              <TrendingUp className="w-6 h-6 text-primary" />
+            </div>
+            <h3 className="text-xl font-bold mb-2">Grow Your Revenue</h3>
+            <p className="text-muted-foreground">
+              Increase your bookings with our easy-to-use platform and marketing support
+            </p>
+          </div>
 
-              <div className="space-y-6">
-                {benefits.map((benefit, idx) => (
-                  <Card
-                    key={idx}
-                    className="border-primary/20 hover:border-primary/40 transition-all hover:shadow-medium"
-                    style={{ animationDelay: `${idx * 100}ms` }}
-                  >
-                    <CardContent className="p-4 sm:p-6">
-                      <div className="flex items-start space-x-4">
-                        <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full gradient-primary flex items-center justify-center flex-shrink-0">
-                          <benefit.icon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="text-base sm:text-lg font-semibold mb-2">{benefit.title}</h3>
-                          <p className="text-sm sm:text-base text-muted-foreground">{benefit.description}</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+          <div className="bg-card border rounded-lg p-6">
+            <div className="bg-primary/10 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+              <Award className="w-6 h-6 text-primary" />
+            </div>
+            <h3 className="text-xl font-bold mb-2">Build Your Brand</h3>
+            <p className="text-muted-foreground">
+              Showcase your work, gather reviews, and build credibility in the market
+            </p>
+          </div>
+        </div>
+
+        {/* Application Form */}
+        <div className="grid md:grid-cols-2 gap-12">
+          <div className="bg-card border rounded-lg p-6">
+            <h2 className="text-2xl font-bold mb-6">Become a Partner</h2>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <Label htmlFor="name">Full Name *</Label>
+                <Input
+                  id="name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                  placeholder="Your name"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="email">Email *</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                  placeholder="your.email@example.com"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="phone">Phone *</Label>
+                <Input
+                  id="phone"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  required
+                  placeholder="10-digit mobile number"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="businessName">Business Name *</Label>
+                <Input
+                  id="businessName"
+                  name="businessName"
+                  value={formData.businessName}
+                  onChange={handleChange}
+                  required
+                  placeholder="Your business name"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="serviceType">Service Type *</Label>
+                <Select value={formData.serviceType} onValueChange={(value) => setFormData({ ...formData, serviceType: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select service type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="photography">Photography</SelectItem>
+                    <SelectItem value="decoration">Decoration</SelectItem>
+                    <SelectItem value="mehndi">Mehndi Artist</SelectItem>
+                    <SelectItem value="makeup">Makeup Artist</SelectItem>
+                    <SelectItem value="pandit">Pandit Ji</SelectItem>
+                    <SelectItem value="dhol">Dhol & Music</SelectItem>
+                    <SelectItem value="helper">Helper Services</SelectItem>
+                    <SelectItem value="shopping">Shopping Assistant</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="experience">Years of Experience *</Label>
+                <Input
+                  id="experience"
+                  name="experience"
+                  value={formData.experience}
+                  onChange={handleChange}
+                  required
+                  placeholder="e.g., 5 years"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="city">City *</Label>
+                <Input
+                  id="city"
+                  name="city"
+                  value={formData.city}
+                  onChange={handleChange}
+                  required
+                  placeholder="Your city"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="message">Tell Us About Your Services</Label>
+                <Textarea
+                  id="message"
+                  name="message"
+                  value={formData.message}
+                  onChange={handleChange}
+                  placeholder="Describe your services, experience, and what makes you special..."
+                  rows={4}
+                />
+              </div>
+
+              <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
+                <Send className="w-4 h-4 mr-2" />
+                {isSubmitting ? 'Submitting...' : 'Submit Application'}
+              </Button>
+            </form>
+          </div>
+
+          {/* Partner Requirements */}
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-2xl font-bold mb-4">Partner Requirements</h2>
+              <div className="space-y-3">
+                {[
+                  'Professional experience in your field',
+                  'Valid business registration (if applicable)',
+                  'Quality portfolio or work samples',
+                  'Positive customer references',
+                  'Commitment to service excellence',
+                  'Availability for bookings',
+                ].map((req, idx) => (
+                  <div key={idx} className="flex items-center gap-3">
+                    <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
+                    <span>{req}</span>
+                  </div>
                 ))}
               </div>
-
-              <div className="mt-8 bg-accent/5 border border-accent/20 rounded-lg p-4 sm:p-6">
-                <h3 className="text-lg sm:text-xl font-semibold mb-3">Our Commitment to You</h3>
-                <ul className="space-y-2 text-sm sm:text-base text-muted-foreground">
-                  <li className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-primary mt-0.5 mr-2 flex-shrink-0" />
-                    <span>No hidden charges - transparent fee structure</span>
-                  </li>
-                  <li className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-primary mt-0.5 mr-2 flex-shrink-0" />
-                    <span>Dedicated support team to help you succeed</span>
-                  </li>
-                  <li className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-primary mt-0.5 mr-2 flex-shrink-0" />
-                    <span>Marketing and promotional support</span>
-                  </li>
-                  <li className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-primary mt-0.5 mr-2 flex-shrink-0" />
-                    <span>Flexible scheduling and booking management</span>
-                  </li>
-                </ul>
-              </div>
             </div>
 
-            <div className="animate-fade-in">
-              <Card className="shadow-large">
-                <CardContent className="p-6 sm:p-8">
-                  <h2 className="text-xl sm:text-2xl font-bold mb-2 font-serif">Join Our Network</h2>
-                  <p className="text-sm sm:text-base text-muted-foreground mb-6">
-                    Fill out the form below and our team will get in touch with you
-                  </p>
-
-                  <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-                      <FormField
-                        control={form.control}
-                        name="name"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Full Name *</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Enter your full name" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="phone"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Mobile Number *</FormLabel>
-                            <FormControl>
-                              <Input placeholder="10-digit mobile number" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="city"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>City *</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Your city" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="serviceType"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Service Type *</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select your service type" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {serviceTypes.map((service) => (
-                                  <SelectItem key={service} value={service}>
-                                    {service}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="message"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Message (Optional)</FormLabel>
-                            <FormControl>
-                              <Textarea
-                                placeholder="Tell us about your services, experience, or any questions..."
-                                className="resize-none"
-                                rows={4}
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <Button type="submit" disabled={isSubmitting} className="w-full" size="lg">
-                        {isSubmitting ? (
-                          'Submitting...'
-                        ) : (
-                          <>
-                            Submit Application
-                            <ArrowRight className="ml-2 h-5 w-5" />
-                          </>
-                        )}
-                      </Button>
-                    </form>
-                  </Form>
-                </CardContent>
-              </Card>
+            <div className="bg-primary/5 border border-primary/20 rounded-lg p-6">
+              <h3 className="font-semibold mb-2">How It Works</h3>
+              <ol className="space-y-2 text-sm text-muted-foreground">
+                <li>1. Submit your application</li>
+                <li>2. Our team reviews your profile</li>
+                <li>3. Complete verification process</li>
+                <li>4. Get onboarded & start receiving bookings</li>
+              </ol>
             </div>
-          </div>
 
-          <div className="text-center bg-primary/5 border border-primary/20 rounded-lg p-6 sm:p-8">
-            <h3 className="text-xl sm:text-2xl font-semibold mb-3">Have Questions?</h3>
-            <p className="text-sm sm:text-base text-muted-foreground mb-4">
-              Our partnership team is here to help you every step of the way
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center items-center text-sm sm:text-base">
-              <a href="tel:+919876543210" className="font-semibold text-primary hover:underline">
-                📞 +91 98765 43210
-              </a>
-              <span className="hidden sm:inline text-muted-foreground">|</span>
-              <a href="mailto:partner@anandayojan.com" className="font-semibold text-primary hover:underline">
-                ✉️ partner@anandayojan.com
-              </a>
+            <div className="bg-accent/5 border border-accent/20 rounded-lg p-6">
+              <h3 className="font-semibold mb-2">Questions?</h3>
+              <p className="text-sm text-muted-foreground mb-3">
+                Have questions about becoming a partner? Contact us at:
+              </p>
+              <p className="text-sm font-medium">partner@anandayojan.com</p>
+              <p className="text-sm font-medium">+91 98765 43210</p>
             </div>
           </div>
         </div>
       </div>
+      <AuthModal />
     </div>
   );
 };
