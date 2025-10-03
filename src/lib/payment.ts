@@ -1,5 +1,5 @@
-// Razorpay integration
-// Add VITE_RAZORPAY_KEY_ID to .env for production
+// Razorpay payment integration
+// Configure VITE_RAZORPAY_KEY_ID in .env for production
 
 declare global {
   interface Window {
@@ -8,6 +8,21 @@ declare global {
 }
 
 const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_XXXXX';
+
+export interface PaymentOptions {
+  orderId: string;
+  amount: number;
+  currency: string;
+  name: string;
+  description: string;
+  prefill?: {
+    name: string;
+    email: string;
+    contact: string;
+  };
+  onSuccess: (response: any) => void;
+  onFailure: (error: any) => void;
+}
 
 // Load Razorpay SDK dynamically
 export const loadRazorpay = (): Promise<boolean> => {
@@ -28,21 +43,6 @@ export const loadRazorpay = (): Promise<boolean> => {
     document.body.appendChild(script);
   });
 };
-
-export interface PaymentOptions {
-  orderId: string;
-  amount: number;
-  currency: string;
-  name: string;
-  description: string;
-  prefill?: {
-    name: string;
-    email: string;
-    contact: string;
-  };
-  onSuccess: (response: any) => void;
-  onFailure: (error: any) => void;
-}
 
 // Create Razorpay checkout instance
 export const createRazorpayCheckout = (options: PaymentOptions) => {
