@@ -5,7 +5,8 @@
  * IMPORTANT: Set VITE_USE_MOCK=false and VITE_API_BASE_URL in .env to use real backend
  */
 
-const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
+// Use mock mode by default if no backend URL is configured or explicitly set to mock
+const USE_MOCK = import.meta.env.VITE_USE_MOCK !== 'false' && !import.meta.env.VITE_API_BASE_URL;
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
 
 // Get auth token from localStorage
@@ -86,9 +87,21 @@ export const bookingsApi = {
     if (USE_MOCK) {
       console.log('🎭 MOCK: Creating booking', bookingData);
       const bookingId = `BKG${Date.now()}`;
+      const booking = { 
+        ...bookingData, 
+        id: bookingId,
+        status: 'confirmed',
+        createdAt: new Date().toISOString(),
+      };
+      
+      // Save to localStorage
+      const bookings = JSON.parse(localStorage.getItem('aa_bookings') || '[]');
+      bookings.push(booking);
+      localStorage.setItem('aa_bookings', JSON.stringify(bookings));
+      
       return {
         bookingId,
-        booking: { ...bookingData, id: bookingId },
+        booking,
         razorpayOrder: {
           id: `order_mock_${Date.now()}`,
           amount: bookingData.lockingAmount * 100,
@@ -130,9 +143,22 @@ export const ordersApi = {
     if (USE_MOCK) {
       console.log('🎭 MOCK: Creating order', orderData);
       const orderId = `ORD${Date.now()}`;
+      const order = { 
+        ...orderData, 
+        id: orderId,
+        status: 'confirmed',
+        paymentStatus: 'paid',
+        createdAt: new Date().toISOString(),
+      };
+      
+      // Save to localStorage
+      const orders = JSON.parse(localStorage.getItem('aa_orders') || '[]');
+      orders.push(order);
+      localStorage.setItem('aa_orders', JSON.stringify(orders));
+      
       return {
         orderId,
-        order: { ...orderData, id: orderId },
+        order,
         razorpayOrder: {
           id: `order_mock_${Date.now()}`,
           amount: orderData.totalAmount * 100,

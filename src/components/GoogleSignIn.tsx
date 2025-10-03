@@ -12,7 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 
 // PASTE YOUR GOOGLE_CLIENT_ID in .env as VITE_GOOGLE_CLIENT_ID
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
+const USE_MOCK = !GOOGLE_CLIENT_ID || import.meta.env.VITE_USE_MOCK === 'true';
 
 interface GoogleSignInProps {
   onSuccess?: () => void;
