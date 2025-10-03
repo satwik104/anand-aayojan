@@ -14,7 +14,7 @@ import { Service } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { bookingsApi, paymentsApi } from '@/services/api';
-import { loadRazorpay, createRazorpayCheckout } from '@/lib/payment';
+import { initiateRazorpayPayment } from '@/lib/payment';
 
 const bookingSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -85,10 +85,8 @@ const BookingForm = ({ service, selectedPackageId, onClose }: BookingFormProps) 
         ...data,
       });
 
-      // Load Razorpay and initiate payment
-      await loadRazorpay();
-
-      const razorpay = createRazorpayCheckout({
+      // Initiate Razorpay payment
+      await initiateRazorpayPayment({
         orderId: razorpayOrder.id,
         amount: razorpayOrder.amount,
         currency: razorpayOrder.currency,
@@ -101,19 +99,16 @@ const BookingForm = ({ service, selectedPackageId, onClose }: BookingFormProps) 
         },
         onSuccess: async (paymentResponse: any) => {
           try {
-            // Verify payment
             await paymentsApi.verify({
               bookingId,
               razorpay_payment_id: paymentResponse.razorpay_payment_id,
               razorpay_order_id: paymentResponse.razorpay_order_id,
               razorpay_signature: paymentResponse.razorpay_signature,
             });
-
             toast({
               title: 'Booking Confirmed! 🎉',
               description: `Your booking (${bookingId}) is confirmed. Check your email for details.`,
             });
-
             navigate('/booking-success', { state: { bookingId } });
             onClose();
           } catch (error) {
@@ -132,8 +127,6 @@ const BookingForm = ({ service, selectedPackageId, onClose }: BookingFormProps) 
           });
         },
       });
-
-      razorpay.open();
     } catch (error) {
       toast({
         title: 'Booking Failed',

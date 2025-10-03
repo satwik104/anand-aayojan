@@ -116,3 +116,18 @@ const mockPayment = (options: PaymentOptions): void => {
     }, 500);
   }
 };
+
+// Convenience helper to initiate payment in one call
+export const initiateRazorpayPayment = async (options: PaymentOptions): Promise<void> => {
+  // Ensure SDK is loaded (or fall back to mock)
+  try {
+    await loadRazorpay();
+  } catch (e) {
+    console.warn('Razorpay load failed, proceeding with mock if available.', e);
+  }
+
+  const checkout = createRazorpayCheckout(options);
+  // Both real and mock instances expose .open()
+  (checkout as any).open();
+};
+
