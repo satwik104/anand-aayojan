@@ -80,22 +80,78 @@ export const createRazorpayCheckout = (options: PaymentOptions) => {
 
 // Mock payment for development/testing
 const mockPayment = (options: PaymentOptions): void => {
-  console.log('💳 [MOCK PAYMENT] Initiating payment:', {
-    amount: options.amount / 100,
-    name: options.name,
-    description: options.description,
-  });
+  console.log('💳 [MOCK PAYMENT] Initiating mock payment flow');
+  
+  // Create a custom modal-like experience
+  const overlay = document.createElement('div');
+  overlay.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 99999;
+    font-family: system-ui, -apple-system, sans-serif;
+  `;
 
-  // Simulate payment dialog
-  const proceed = window.confirm(
-    `Mock Payment\n\n` +
-    `Amount: ₹${options.amount / 100}\n` +
-    `To: ${options.name}\n` +
-    `For: ${options.description}\n\n` +
-    `Click OK to simulate successful payment, Cancel to simulate failure.`
-  );
+  const modal = document.createElement('div');
+  modal.style.cssText = `
+    background: white;
+    border-radius: 12px;
+    padding: 32px;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    text-align: center;
+  `;
 
-  if (proceed) {
+  modal.innerHTML = `
+    <div style="color: #10b981; font-size: 48px; margin-bottom: 16px;">✓</div>
+    <h2 style="color: #1f2937; font-size: 24px; margin-bottom: 8px; font-weight: 600;">Mock Payment</h2>
+    <p style="color: #6b7280; font-size: 14px; margin-bottom: 24px;">Testing Mode - No real payment</p>
+    <div style="background: #f3f4f6; padding: 16px; border-radius: 8px; margin-bottom: 24px;">
+      <p style="color: #6b7280; font-size: 12px; margin-bottom: 4px;">Amount</p>
+      <p style="color: #1f2937; font-size: 28px; font-weight: 700;">₹${(options.amount / 100).toLocaleString()}</p>
+      <p style="color: #6b7280; font-size: 14px; margin-top: 8px;">${options.description}</p>
+    </div>
+    <div style="display: flex; gap: 12px;">
+      <button id="mock-cancel" style="
+        flex: 1;
+        padding: 12px;
+        border: 2px solid #e5e7eb;
+        background: white;
+        color: #6b7280;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+      ">Cancel</button>
+      <button id="mock-pay" style="
+        flex: 1;
+        padding: 12px;
+        border: none;
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+      ">Pay Now</button>
+    </div>
+  `;
+
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+
+  // Handle pay button
+  modal.querySelector('#mock-pay')?.addEventListener('click', () => {
+    document.body.removeChild(overlay);
     setTimeout(() => {
       const mockResponse = {
         razorpay_payment_id: `pay_mock_${Date.now()}`,
@@ -104,17 +160,28 @@ const mockPayment = (options: PaymentOptions): void => {
       };
       console.log('✅ [MOCK PAYMENT] Success:', mockResponse);
       options.onSuccess(mockResponse);
-    }, 1500);
-  } else {
+    }, 500);
+  });
+
+  // Handle cancel button
+  modal.querySelector('#mock-cancel')?.addEventListener('click', () => {
+    document.body.removeChild(overlay);
     setTimeout(() => {
       const mockError = {
         error: 'Payment cancelled by user',
         description: 'User closed the payment dialog',
       };
-      console.log('❌ [MOCK PAYMENT] Failed:', mockError);
+      console.log('❌ [MOCK PAYMENT] Cancelled:', mockError);
       options.onFailure(mockError);
-    }, 500);
-  }
+    }, 300);
+  });
+
+  // Close on overlay click
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) {
+      modal.querySelector('#mock-cancel')?.dispatchEvent(new Event('click'));
+    }
+  });
 };
 
 // Convenience helper to initiate payment in one call

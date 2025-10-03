@@ -26,17 +26,17 @@ const Header = () => {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-card shadow-soft">
       <div className="container mx-auto px-4">
-        <div className="flex h-16 items-center justify-between gap-4">
+        <div className="flex h-16 items-center justify-between gap-3">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2 flex-shrink-0">
             <LogoFull 
               iconClassName="h-8 w-8 sm:h-10 sm:w-10 text-primary" 
-              textClassName="hidden sm:block text-lg sm:text-xl font-bold text-foreground font-serif" 
+              textClassName="hidden sm:block text-base sm:text-xl font-bold text-foreground font-serif" 
             />
           </Link>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center space-x-4 xl:space-x-6">
+          {/* Desktop Navigation - Show on medium screens and up */}
+          <nav className="hidden md:flex items-center space-x-3 lg:space-x-6">
             {navLinks.map((link) => (
               <Link
                 key={link.path}
@@ -56,7 +56,7 @@ const Header = () => {
 
           {/* Right Actions */}
           <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-            {/* Search - Hidden on mobile */}
+            {/* Search - Hidden on small screens */}
             {searchOpen ? (
               <div className="flex items-center space-x-2 animate-fade-in">
                 <Input
@@ -119,9 +119,9 @@ const Header = () => {
               </Button>
             )}
 
-            {/* Mobile Menu */}
+            {/* Mobile Menu - Only show on small screens */}
             <Sheet>
-              <SheetTrigger asChild className="lg:hidden">
+              <SheetTrigger asChild className="md:hidden">
                 <Button variant="ghost" size="icon" className="flex-shrink-0">
                   <Menu className="h-5 w-5" />
                 </Button>
