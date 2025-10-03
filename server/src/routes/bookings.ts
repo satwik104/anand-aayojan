@@ -2,6 +2,8 @@ import express from 'express';
 import { authenticateToken, AuthRequest } from '../middleware/auth';
 import { createRazorpayOrder } from '../services/razorpay';
 import { forwardToAppsScript } from '../services/apps-script';
+import { sendEmail } from '../services/sendgrid';
+import { generateBookingConfirmationEmail } from '../templates/booking-confirmation';
 
 const router = express.Router();
 

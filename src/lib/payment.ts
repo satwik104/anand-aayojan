@@ -1,5 +1,5 @@
-// Razorpay integration placeholder
-// Replace with actual Razorpay credentials
+// Razorpay integration
+// Add VITE_RAZORPAY_KEY_ID to .env for production
 
 declare global {
   interface Window {
@@ -9,12 +9,32 @@ declare global {
 
 const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_XXXXX';
 
+// Load Razorpay SDK dynamically
+export const loadRazorpay = (): Promise<boolean> => {
+  return new Promise((resolve) => {
+    // If already loaded
+    if (window.Razorpay) {
+      resolve(true);
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.onload = () => resolve(true);
+    script.onerror = () => {
+      console.warn('⚠️ Razorpay SDK failed to load. Using mock mode.');
+      resolve(false);
+    };
+    document.body.appendChild(script);
+  });
+};
+
 export interface PaymentOptions {
+  orderId: string;
   amount: number;
-  currency?: string;
+  currency: string;
   name: string;
   description: string;
-  orderId?: string;
   prefill?: {
     name: string;
     email: string;
@@ -24,24 +44,26 @@ export interface PaymentOptions {
   onFailure: (error: any) => void;
 }
 
-export const initiateRazorpayPayment = (options: PaymentOptions): void => {
-  // Check if Razorpay script is loaded
-  if (typeof window.Razorpay === 'undefined') {
-    console.warn('⚠️ Razorpay SDK not loaded. Using mock payment.');
-    mockPayment(options);
-    return;
+// Create Razorpay checkout instance
+export const createRazorpayCheckout = (options: PaymentOptions) => {
+  // Check if Razorpay is loaded
+  if (!window.Razorpay) {
+    console.warn('⚠️ Razorpay not loaded. Using mock payment.');
+    return {
+      open: () => mockPayment(options),
+    };
   }
 
   const razorpayOptions = {
     key: RAZORPAY_KEY_ID,
-    amount: options.amount * 100, // Convert to paise
-    currency: options.currency || 'INR',
+    amount: options.amount,
+    currency: options.currency,
     name: options.name,
     description: options.description,
     order_id: options.orderId,
     prefill: options.prefill,
     theme: {
-      color: '#D4AF37', // Golden color matching your theme
+      color: '#D4AF37',
     },
     handler: function (response: any) {
       options.onSuccess(response);
@@ -53,14 +75,13 @@ export const initiateRazorpayPayment = (options: PaymentOptions): void => {
     },
   };
 
-  const razorpay = new window.Razorpay(razorpayOptions);
-  razorpay.open();
+  return new window.Razorpay(razorpayOptions);
 };
 
 // Mock payment for development/testing
 const mockPayment = (options: PaymentOptions): void => {
   console.log('💳 [MOCK PAYMENT] Initiating payment:', {
-    amount: options.amount,
+    amount: options.amount / 100,
     name: options.name,
     description: options.description,
   });
@@ -68,18 +89,17 @@ const mockPayment = (options: PaymentOptions): void => {
   // Simulate payment dialog
   const proceed = window.confirm(
     `Mock Payment\n\n` +
-    `Amount: ₹${options.amount}\n` +
+    `Amount: ₹${options.amount / 100}\n` +
     `To: ${options.name}\n` +
     `For: ${options.description}\n\n` +
     `Click OK to simulate successful payment, Cancel to simulate failure.`
   );
 
   if (proceed) {
-    // Simulate network delay
     setTimeout(() => {
       const mockResponse = {
         razorpay_payment_id: `pay_mock_${Date.now()}`,
-        razorpay_order_id: options.orderId || `order_mock_${Date.now()}`,
+        razorpay_order_id: options.orderId,
         razorpay_signature: 'mock_signature',
       };
       console.log('✅ [MOCK PAYMENT] Success:', mockResponse);
@@ -94,71 +114,5 @@ const mockPayment = (options: PaymentOptions): void => {
       console.log('❌ [MOCK PAYMENT] Failed:', mockError);
       options.onFailure(mockError);
     }, 500);
-  }
-};
-
-// API call to create payment order
-export const createPaymentOrder = async (amount: number, bookingId?: string): Promise<{ orderId: string; amount: number }> => {
-  try {
-    const response = await fetch('/api/payments/create', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ amount, bookingId }),
-    }).catch(() => {
-      // Mock response
-      return {
-        ok: true,
-        json: async () => ({
-          orderId: `order_mock_${Date.now()}`,
-          amount,
-        }),
-      };
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to create payment order');
-    }
-
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error('Error creating payment order:', error);
-    // Return mock data for development
-    return {
-      orderId: `order_mock_${Date.now()}`,
-      amount,
-    };
-  }
-};
-
-// Verify payment signature
-export const verifyPayment = async (paymentId: string, orderId: string, signature: string): Promise<{ verified: boolean }> => {
-  try {
-    const response = await fetch('/api/payments/verify', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ paymentId, orderId, signature }),
-    }).catch(() => {
-      // Mock response
-      return {
-        ok: true,
-        json: async () => ({ verified: true }),
-      };
-    });
-
-    if (!response.ok) {
-      throw new Error('Payment verification failed');
-    }
-
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error('Error verifying payment:', error);
-    // Mock success for development
-    return { verified: true };
   }
 };

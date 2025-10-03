@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { CircleCheck as CheckCircle, Shield, Clock, Star, ArrowRight, Sparkles } from 'lucide-react';
+import { CircleCheck as CheckCircle, Shield, Clock, ArrowRight, Sparkles } from 'lucide-react';
 import ServiceCard from '@/components/ServiceCard';
 import { services } from '@/data/services';
+import ReviewsCarousel from '@/components/ReviewsCarousel';
 import heroImage from '@/assets/hero-wedding.jpg';
 
 const Home = () => {
@@ -41,8 +42,17 @@ const Home = () => {
                   <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
                 </Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="bg-white/10 border-white text-white hover:bg-white hover:text-foreground w-full sm:w-auto">
-                <Link to="#how-it-works">How It Works</Link>
+              <Button 
+                asChild 
+                size="lg" 
+                variant="outline" 
+                className="bg-white/10 border-white text-white hover:bg-white hover:text-foreground w-full sm:w-auto"
+                onClick={(e: any) => {
+                  e.preventDefault();
+                  document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+              >
+                <a href="#how-it-works">How It Works</a>
               </Button>
             </div>
           </div>
@@ -128,51 +138,8 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="py-12 sm:py-16 gradient-festive overflow-hidden">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-8 sm:mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-3 sm:mb-4 font-serif">What Our Customers Say</h2>
-            <p className="text-base sm:text-lg text-muted-foreground">Trusted by thousands for their special moments</p>
-          </div>
-
-          <div className="relative">
-            <div className="testimonial-scroll flex gap-6 pb-4">
-              {(() => {
-                const testimonials = [
-                  { name: 'Priya Sharma', service: 'Mehndi Artist', text: 'The mehndi artist was amazing! Beautiful designs and very professional. The booking process was so easy.' },
-                  { name: 'Rahul Verma', service: 'Photography', text: 'Excellent photography service. Captured all our special moments perfectly. Highly recommend!' },
-                  { name: 'Anjali Patel', service: 'Decoration', text: 'The decoration team transformed our venue beautifully. Everything was perfect and on time.' },
-                  { name: 'Sanjay Kumar', service: 'Pandit Ji', text: 'Very knowledgeable pandit ji. Conducted all rituals perfectly with proper guidance. Highly satisfied.' },
-                  { name: 'Neha Singh', service: 'Makeup', text: 'Bridal makeup was flawless! I looked exactly how I imagined. The artist was punctual and professional.' },
-                  { name: 'Amit Desai', service: 'Dhol & Music', text: 'The dhol players made our baraat so energetic! Everyone loved the music and the vibe.' },
-                  { name: 'Kavita Reddy', service: 'Helper Services', text: 'The helpers were efficient and courteous. Made our event management stress-free.' },
-                  { name: 'Ravi Malhotra', service: 'Photography', text: 'Amazing candid shots! The photographer captured emotions beautifully. Worth every penny.' },
-                  { name: 'Shreya Gupta', service: 'Decoration', text: 'The theme decoration exceeded our expectations. Attention to detail was remarkable!' },
-                  { name: 'Vikram Joshi', service: 'Photography', text: 'Professional videography service. The highlight reel brought tears to our eyes.' },
-                ];
-                return [...testimonials, ...testimonials].map((testimonial, idx) => (
-                  <div
-                    key={idx}
-                    className="bg-card p-4 sm:p-6 rounded-lg shadow-medium flex-shrink-0 w-[280px] sm:w-[320px] hover:shadow-large transition-shadow"
-                  >
-                    <div className="flex items-center mb-3 sm:mb-4">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="h-3 w-3 sm:h-4 sm:w-4 fill-primary text-primary" />
-                      ))}
-                    </div>
-                    <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4 line-clamp-3">"{testimonial.text}"</p>
-                    <div>
-                      <p className="font-semibold text-sm sm:text-base">{testimonial.name}</p>
-                      <p className="text-xs sm:text-sm text-muted-foreground">{testimonial.service}</p>
-                    </div>
-                  </div>
-                ));
-              })()}
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Testimonials - Reviews Carousel */}
+      <ReviewsCarousel />
 
       {/* CTA Section */}
       <section className="py-16 gradient-hero text-white">

@@ -8,12 +8,14 @@ import { Input } from '@/components/ui/input';
 import { ShoppingCart, ArrowLeft, Minus, Plus, Package } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 import { useToast } from '@/hooks/use-toast';
+import { useAuthGate } from '@/components/AuthGate';
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { addItem } = useCart();
   const { toast } = useToast();
+  const { requireAuth, AuthModal } = useAuthGate();
   const [quantity, setQuantity] = useState(1);
 
   const product = products.find(p => p.id === id);
@@ -34,20 +36,22 @@ const ProductDetail = () => {
   }
 
   const handleAddToCart = () => {
-    addItem({
-      id: `product_${product.id}_${Date.now()}`,
-      type: 'product',
-      productId: product.id,
-      name: product.name,
-      price: product.price,
-      quantity,
-      image: product.image,
-    });
+    requireAuth(() => {
+      addItem({
+        id: `product_${product.id}_${Date.now()}`,
+        type: 'product',
+        productId: product.id,
+        name: product.name,
+        price: product.price,
+        quantity,
+        image: product.image,
+      });
 
-    toast({
-      title: 'Added to cart! 🛒',
-      description: `${quantity}x ${product.name} has been added to your cart.`,
-    });
+      toast({
+        title: 'Added to cart! 🛒',
+        description: `${quantity}x ${product.name} has been added to your cart.`,
+      });
+    }, 'add to cart');
   };
 
   const incrementQuantity = () => {
@@ -63,8 +67,10 @@ const ProductDetail = () => {
   };
 
   return (
-    <div className="min-h-screen py-12">
-      <div className="container mx-auto px-4">
+    <>
+      <AuthModal />
+      <div className="min-h-screen py-12">
+        <div className="container mx-auto px-4">
         <Button
           variant="ghost"
           onClick={() => navigate(-1)}
@@ -228,6 +234,7 @@ const ProductDetail = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

@@ -1,8 +1,10 @@
 import express from 'express';
 import { authenticateToken, AuthRequest } from '../middleware/auth';
 import { verifyRazorpaySignature } from '../services/razorpay';
-import { sendBookingConfirmationEmail, sendOrderConfirmationEmail } from '../services/sendgrid';
+import { sendEmail } from '../services/sendgrid';
 import { forwardToAppsScript } from '../services/apps-script';
+import { generateBookingConfirmationEmail } from '../templates/booking-confirmation';
+import { generateOrderConfirmationEmail } from '../templates/order-confirmation';
 
 const router = express.Router();
 
@@ -41,15 +43,22 @@ router.post('/verify', authenticateToken, async (req: AuthRequest, res) => {
         paymentStatus: 'paid'
       });
 
-      // Send confirmation email
-      await sendBookingConfirmationEmail(user.email, {
+      // Send confirmation email (simplified - get actual data from booking record)
+      const html = generateBookingConfirmationEmail({
         bookingId,
-        userName: user.name,
-        serviceName: 'Service',
-        date: 'TBD',
-        time: 'TBD',
+        serviceName: 'Your Booked Service',
+        packageName: 'Selected Package',
+        customerName: user.name,
+        preferredDate: 'As selected',
+        preferredTime: 'As selected',
         lockingAmount: 0,
-        totalAmount: 0
+        totalAmount: 0,
+      });
+
+      await sendEmail({
+        to: user.email,
+        subject: `Booking Confirmed - ${bookingId}`,
+        html,
       });
 
       return res.json({
@@ -69,12 +78,20 @@ router.post('/verify', authenticateToken, async (req: AuthRequest, res) => {
         paymentStatus: 'paid'
       });
 
-      // Send confirmation email
-      await sendOrderConfirmationEmail(user.email, {
+      // Send confirmation email (simplified - get actual data from order record)
+      const html = generateOrderConfirmationEmail({
         orderId,
-        userName: user.name,
+        customerName: user.name,
+        items: [],
         totalAmount: 0,
-        itemCount: 0
+        shipping: 0,
+        address: 'As provided',
+      });
+
+      await sendEmail({
+        to: user.email,
+        subject: `Order Confirmed - ${orderId}`,
+        html,
       });
 
       return res.json({

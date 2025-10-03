@@ -21,6 +21,14 @@ const Header = () => {
     { name: 'Contact', path: '/contact' },
   ];
 
+  const authenticatedLinks = [
+    { name: 'My Bookings', path: '/my-bookings' },
+    { name: 'My Orders', path: '/my-orders' },
+    { name: 'Wishlist', path: '/wishlist' },
+  ];
+
+  const partnerLink = { name: 'Be Our Partner', path: '/partner' };
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-card shadow-soft">
       <div className="container mx-auto px-4">
@@ -44,6 +52,21 @@ const Header = () => {
                 {link.name}
               </Link>
             ))}
+            {isAuthenticated && authenticatedLinks.map((link) => (
+              <Link
+                key={link.path}
+                to={link.path}
+                className="text-sm font-medium text-foreground/80 hover:text-primary transition-smooth"
+              >
+                {link.name}
+              </Link>
+            ))}
+            <Link
+              to={partnerLink.path}
+              className="text-sm font-medium text-foreground/80 hover:text-primary transition-smooth"
+            >
+              {partnerLink.name}
+            </Link>
           </nav>
 
           {/* Right Actions */}
@@ -89,6 +112,13 @@ const Header = () => {
                   <DropdownMenuItem onClick={() => navigate('/my-bookings')}>
                     My Bookings
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/my-orders')}>
+                    My Orders
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/wishlist')}>
+                    Wishlist
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={logout} className="text-destructive">
                     <LogOut className="h-4 w-4 mr-2" />
                     Logout
@@ -122,6 +152,28 @@ const Header = () => {
                       {link.name}
                     </Link>
                   ))}
+                  {isAuthenticated && (
+                    <>
+                      <div className="border-t pt-4">
+                        <p className="text-xs text-muted-foreground uppercase mb-2">My Account</p>
+                        {authenticatedLinks.map((link) => (
+                          <Link
+                            key={link.path}
+                            to={link.path}
+                            className="text-lg font-medium text-foreground/80 block py-2"
+                          >
+                            {link.name}
+                          </Link>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                  <Link
+                    to={partnerLink.path}
+                    className="text-lg font-medium text-primary"
+                  >
+                    {partnerLink.name}
+                  </Link>
                 </div>
               </SheetContent>
             </Sheet>

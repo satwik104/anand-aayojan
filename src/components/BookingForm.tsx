@@ -11,8 +11,10 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
 import { Service } from '@/types';
-import { MockApi } from '@/data/mockApi';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { bookingsApi, paymentsApi } from '@/services/api';
+import { loadRazorpay, createRazorpayCheckout } from '@/lib/payment';
 
 const bookingSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -38,7 +40,14 @@ interface BookingFormProps {
 const BookingForm = ({ service, selectedPackageId, onClose }: BookingFormProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user, isAuthenticated } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Redirect to auth if not logged in
+  if (!isAuthenticated) {
+    navigate('/auth');
+    return null;
+  }
 
   const selectedPackage = service.packages.find(p => p.id === selectedPackageId);
   if (!selectedPackage) return null;
@@ -65,7 +74,8 @@ const BookingForm = ({ service, selectedPackageId, onClose }: BookingFormProps) 
   const onSubmit = async (data: BookingFormData) => {
     setIsSubmitting(true);
     try {
-      const { bookingId } = await MockApi.createBooking({
+      // Create booking with backend
+      const { bookingId, razorpayOrder } = await bookingsApi.create({
         serviceId: service.id,
         serviceName: service.name,
         packageId: selectedPackageId,
@@ -73,18 +83,57 @@ const BookingForm = ({ service, selectedPackageId, onClose }: BookingFormProps) 
         totalAmount,
         lockingAmount,
         ...data,
-      } as any);
-
-      // Simulate payment
-      await MockApi.processPayment(bookingId);
-
-      toast({
-        title: 'Booking Confirmed! 🎉',
-        description: `Your booking (${bookingId}) is confirmed. Check your email for details.`,
       });
 
-      navigate('/booking-success', { state: { bookingId } });
-      onClose();
+      // Load Razorpay and initiate payment
+      await loadRazorpay();
+
+      const razorpay = createRazorpayCheckout({
+        orderId: razorpayOrder.id,
+        amount: razorpayOrder.amount,
+        currency: razorpayOrder.currency,
+        name: service.name,
+        description: `Locking amount for ${selectedPackage.name}`,
+        prefill: {
+          name: data.name,
+          email: data.email,
+          contact: data.phone,
+        },
+        onSuccess: async (paymentResponse: any) => {
+          try {
+            // Verify payment
+            await paymentsApi.verify({
+              bookingId,
+              razorpay_payment_id: paymentResponse.razorpay_payment_id,
+              razorpay_order_id: paymentResponse.razorpay_order_id,
+              razorpay_signature: paymentResponse.razorpay_signature,
+            });
+
+            toast({
+              title: 'Booking Confirmed! 🎉',
+              description: `Your booking (${bookingId}) is confirmed. Check your email for details.`,
+            });
+
+            navigate('/booking-success', { state: { bookingId } });
+            onClose();
+          } catch (error) {
+            toast({
+              title: 'Payment Verification Failed',
+              description: 'Please contact support.',
+              variant: 'destructive',
+            });
+          }
+        },
+        onFailure: () => {
+          toast({
+            title: 'Payment Failed',
+            description: 'Please try again.',
+            variant: 'destructive',
+          });
+        },
+      });
+
+      razorpay.open();
     } catch (error) {
       toast({
         title: 'Booking Failed',

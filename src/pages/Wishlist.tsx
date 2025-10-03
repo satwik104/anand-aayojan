@@ -28,6 +28,7 @@ const Wishlist = () => {
   };
 
   const removeFromWishlist = (itemId: string) => {
+    if (!isAuthenticated) return;
     const updated = wishlistItems.filter(item => item.id !== itemId);
     setWishlistItems(updated);
     localStorage.setItem(`aa_wishlist_${user?.email}`, JSON.stringify(updated));
