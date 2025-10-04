@@ -76,7 +76,7 @@ const Wishlist = () => {
                         variant="outline" 
                         size="sm" 
                         className="flex-1"
-                        onClick={() => navigate(`/products/${item.id}`)}
+                        onClick={() => navigate(item.type === 'service' ? `/services/${item.id}` : `/products/${item.id}`)}
                       >
                         View Details
                       </Button>

@@ -6,15 +6,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search, ShoppingCart, Package } from 'lucide-react';
+import { Search, ShoppingCart, Package, Heart } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { useAuthGate } from '@/components/AuthGate';
+import { addToWishlist } from '@/lib/wishlist';
 
 const Products = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const { addItem } = useCart();
   const { toast } = useToast();
+  const { user } = useAuth();
+  const { requireAuth, AuthModal } = useAuthGate();
 
   const categories = ['all', ...new Set(products.map(p => p.category))];
 
@@ -27,25 +32,45 @@ const Products = () => {
   });
 
   const handleAddToCart = (product: typeof products[0]) => {
-    addItem({
-      id: `product_${product.id}_${Date.now()}`,
-      type: 'product',
-      productId: product.id,
-      name: product.name,
-      price: product.price,
-      quantity: 1,
-      image: product.image,
-    });
+    requireAuth(() => {
+      addItem({
+        id: `product_${product.id}_${Date.now()}`,
+        type: 'product',
+        productId: product.id,
+        name: product.name,
+        price: product.price,
+        quantity: 1,
+        image: product.image,
+      });
 
-    toast({
-      title: 'Added to cart! 🛒',
-      description: `${product.name} has been added to your cart.`,
-    });
+      toast({
+        title: 'Added to cart! 🛒',
+        description: `${product.name} has been added to your cart.`,
+      });
+    }, 'add to cart');
+  };
+
+  const handleWishlist = (product: typeof products[0]) => {
+    requireAuth(() => {
+      if (!user?.email) return;
+      const { added } = addToWishlist(user.email, {
+        id: product.id,
+        type: 'product',
+        name: product.name,
+        image: product.image,
+        price: product.price,
+      });
+      toast({
+        title: added ? 'Saved to wishlist ❤️' : 'Already in wishlist',
+        description: added ? `${product.name} was added to your wishlist.` : undefined,
+      });
+    }, 'save to wishlist');
   };
 
   return (
     <div className="min-h-screen py-12">
       <div className="container mx-auto px-4">
+        <AuthModal />
         {/* Header */}
         <div className="text-center mb-12">
           <div className="flex items-center justify-center mb-4">
@@ -89,7 +114,20 @@ const Products = () => {
               <Card key={product.id} className="hover:shadow-lg transition-shadow">
                 <CardHeader className="p-0">
                   <Link to={`/products/${product.id}`}>
-                    <div className="aspect-square overflow-hidden rounded-t-lg">
+                    <div className="relative aspect-square overflow-hidden rounded-t-lg">
+                      <Button
+                        variant="secondary"
+                        size="icon"
+                        className="absolute top-2 right-2 z-10 rounded-full"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleWishlist(product);
+                        }}
+                        aria-label="Save to wishlist"
+                      >
+                        <Heart className="h-4 w-4" />
+                      </Button>
                       <img
                         src={product.image}
                         alt={product.name}
