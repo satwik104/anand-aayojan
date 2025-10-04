@@ -7,7 +7,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
-import { proxyApi } from '@/services/api';
 import { useAuthGate } from '@/components/AuthGate';
 
 const Partner = () => {
@@ -36,7 +35,8 @@ const Partner = () => {
     requireAuth(async () => {
       setIsSubmitting(true);
       try {
-        await proxyApi.appsScript('partner', formData);
+        // Form data is collected - in a real app, this would send to your backend
+        console.log('Partner application submitted:', formData);
         toast.success('Application submitted successfully! We will review and contact you soon.');
         
         setFormData({

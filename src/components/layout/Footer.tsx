@@ -73,18 +73,33 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <a href="#" className="text-sm text-muted-foreground hover:text-primary transition-smooth">
+                <a 
+                  href="https://merchant.razorpay.com/policy/RPMFkJQYiwPGIu/shipping" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-sm text-muted-foreground hover:text-primary transition-smooth"
+                >
+                  Shipping
+                </a>
+              </li>
+              <li>
+                <a 
+                  href="https://merchant.razorpay.com/policy/RPMFkJQYiwPGIu/terms" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-sm text-muted-foreground hover:text-primary transition-smooth"
+                >
                   Terms & Conditions
                 </a>
               </li>
               <li>
-                <a href="#" className="text-sm text-muted-foreground hover:text-primary transition-smooth">
-                  Privacy Policy
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-sm text-muted-foreground hover:text-primary transition-smooth">
-                  Refund Policy
+                <a 
+                  href="https://merchant.razorpay.com/policy/RPMFkJQYiwPGIu/refund" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-sm text-muted-foreground hover:text-primary transition-smooth"
+                >
+                  Cancellation & Refunds
                 </a>
               </li>
             </ul>

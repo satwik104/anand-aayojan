@@ -1,20 +1,19 @@
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
 
-const USE_MOCK = process.env.USE_MOCK === 'true';
-
-// PASTE YOUR RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in .env file
 const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID;
 const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET;
 
-let razorpayInstance: Razorpay | null = null;
-
-if (!USE_MOCK && RAZORPAY_KEY_ID && RAZORPAY_KEY_SECRET) {
-  razorpayInstance = new Razorpay({
-    key_id: RAZORPAY_KEY_ID,
-    key_secret: RAZORPAY_KEY_SECRET,
-  });
+if (!RAZORPAY_KEY_ID || !RAZORPAY_KEY_SECRET) {
+  console.warn('⚠️ RAZORPAY_KEY_ID or RAZORPAY_KEY_SECRET not set in .env - payments will fail');
 }
+
+const razorpayInstance = (RAZORPAY_KEY_ID && RAZORPAY_KEY_SECRET) 
+  ? new Razorpay({
+      key_id: RAZORPAY_KEY_ID,
+      key_secret: RAZORPAY_KEY_SECRET,
+    })
+  : null;
 
 export interface RazorpayOrder {
   id: string;
@@ -28,18 +27,6 @@ export const createRazorpayOrder = async (
   receipt: string,
   notes?: any
 ): Promise<RazorpayOrder> => {
-  // Mock mode: return fake order
-  if (USE_MOCK) {
-    console.log('🎭 MOCK: Creating fake Razorpay order');
-    return {
-      id: `order_mock_${Date.now()}`,
-      amount: amount,
-      currency: 'INR',
-      receipt: receipt
-    };
-  }
-
-  // Real mode: create actual Razorpay order
   if (!razorpayInstance) {
     throw new Error('Razorpay not initialized. Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in .env');
   }
@@ -69,13 +56,6 @@ export const verifyRazorpaySignature = (
   paymentId: string,
   signature: string
 ): boolean => {
-  // Mock mode: always return true
-  if (USE_MOCK) {
-    console.log('🎭 MOCK: Accepting payment signature without verification');
-    return true;
-  }
-
-  // Real mode: verify signature
   if (!RAZORPAY_KEY_SECRET) {
     throw new Error('RAZORPAY_KEY_SECRET not set');
   }

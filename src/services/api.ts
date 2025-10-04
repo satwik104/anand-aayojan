@@ -1,12 +1,10 @@
 /**
  * API Service for AnandAyojan
- * Handles all backend communication with mock/real mode toggle
+ * Handles all backend communication
  * 
- * IMPORTANT: Set VITE_USE_MOCK=false and VITE_API_BASE_URL in .env to use real backend
+ * IMPORTANT: Set VITE_API_BASE_URL in .env to your backend URL
  */
 
-// Set to false to use real backend with Razorpay integration
-const USE_MOCK = false;
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
 
 // Get auth token from localStorage
@@ -50,33 +48,27 @@ const apiClient = async (endpoint: string, options: RequestInit = {}) => {
 // Auth API
 export const authApi = {
   googleLogin: async (idToken: string) => {
-    if (USE_MOCK) {
-      console.log('🎭 MOCK: Google login');
-      const mockUser = {
-        id: `mock_${Date.now()}`,
-        email: 'demo@anandayojan.com',
-        name: 'Demo User',
-        picture: 'https://via.placeholder.com/150'
-      };
-      const mockToken = `mock_token_${Date.now()}`;
-      return { token: mockToken, user: mockUser };
-    }
-
     return apiClient('/auth/google', {
       method: 'POST',
       body: JSON.stringify({ idToken }),
     });
   },
 
-  getMe: async () => {
-    if (USE_MOCK) {
-      const savedUser = localStorage.getItem('aa_user');
-      if (savedUser) {
-        return { user: JSON.parse(savedUser) };
-      }
-      return { user: null };
-    }
+  emailSignup: async (email: string, password: string, name: string) => {
+    return apiClient('/auth/signup', {
+      method: 'POST',
+      body: JSON.stringify({ email, password, name }),
+    });
+  },
 
+  emailLogin: async (email: string, password: string) => {
+    return apiClient('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    });
+  },
+
+  getMe: async () => {
     return apiClient('/auth/me');
   },
 };
@@ -84,32 +76,6 @@ export const authApi = {
 // Bookings API
 export const bookingsApi = {
   create: async (bookingData: any) => {
-    if (USE_MOCK) {
-      console.log('🎭 MOCK: Creating booking', bookingData);
-      const bookingId = `BKG${Date.now()}`;
-      const booking = { 
-        ...bookingData, 
-        id: bookingId,
-        status: 'confirmed',
-        createdAt: new Date().toISOString(),
-      };
-      
-      // Save to localStorage
-      const bookings = JSON.parse(localStorage.getItem('aa_bookings') || '[]');
-      bookings.push(booking);
-      localStorage.setItem('aa_bookings', JSON.stringify(bookings));
-      
-      return {
-        bookingId,
-        booking,
-        razorpayOrder: {
-          id: `order_mock_${Date.now()}`,
-          amount: bookingData.lockingAmount * 100,
-          currency: 'INR',
-        },
-      };
-    }
-
     return apiClient('/bookings', {
       method: 'POST',
       body: JSON.stringify(bookingData),
@@ -117,20 +83,10 @@ export const bookingsApi = {
   },
 
   getAll: async () => {
-    if (USE_MOCK) {
-      const bookings = JSON.parse(localStorage.getItem('aa_bookings') || '[]');
-      return { bookings };
-    }
-
     return apiClient('/bookings');
   },
 
   cancel: async (bookingId: string) => {
-    if (USE_MOCK) {
-      console.log('🎭 MOCK: Cancelling booking', bookingId);
-      return { success: true, message: 'Booking cancelled' };
-    }
-
     return apiClient(`/bookings/${bookingId}/cancel`, {
       method: 'POST',
     });
@@ -140,33 +96,6 @@ export const bookingsApi = {
 // Orders API
 export const ordersApi = {
   create: async (orderData: any) => {
-    if (USE_MOCK) {
-      console.log('🎭 MOCK: Creating order', orderData);
-      const orderId = `ORD${Date.now()}`;
-      const order = { 
-        ...orderData, 
-        id: orderId,
-        status: 'confirmed',
-        paymentStatus: 'paid',
-        createdAt: new Date().toISOString(),
-      };
-      
-      // Save to localStorage
-      const orders = JSON.parse(localStorage.getItem('aa_orders') || '[]');
-      orders.push(order);
-      localStorage.setItem('aa_orders', JSON.stringify(orders));
-      
-      return {
-        orderId,
-        order,
-        razorpayOrder: {
-          id: `order_mock_${Date.now()}`,
-          amount: orderData.totalAmount * 100,
-          currency: 'INR',
-        },
-      };
-    }
-
     return apiClient('/orders', {
       method: 'POST',
       body: JSON.stringify(orderData),
@@ -174,11 +103,6 @@ export const ordersApi = {
   },
 
   getAll: async () => {
-    if (USE_MOCK) {
-      const orders = JSON.parse(localStorage.getItem('aa_orders') || '[]');
-      return { orders };
-    }
-
     return apiClient('/orders');
   },
 };
@@ -186,11 +110,6 @@ export const ordersApi = {
 // Payments API
 export const paymentsApi = {
   verify: async (paymentData: any) => {
-    if (USE_MOCK) {
-      console.log('🎭 MOCK: Verifying payment', paymentData);
-      return { success: true, message: 'Payment verified' };
-    }
-
     return apiClient('/payments/verify', {
       method: 'POST',
       body: JSON.stringify(paymentData),
@@ -198,19 +117,4 @@ export const paymentsApi = {
   },
 };
 
-// Proxy API (for Apps Script, contact forms, etc.)
-export const proxyApi = {
-  appsScript: async (action: string, data: any) => {
-    if (USE_MOCK) {
-      console.log('🎭 MOCK: Apps Script proxy', action, data);
-      return { success: true, mock: true };
-    }
-
-    return apiClient('/proxy/apps-script', {
-      method: 'POST',
-      body: JSON.stringify({ action, data }),
-    });
-  },
-};
-
-export { USE_MOCK, API_BASE_URL };
+export { API_BASE_URL };
