@@ -47,6 +47,8 @@ const GoogleSignIn = ({ onSuccess }: GoogleSignInProps) => {
         window.google.accounts.id.initialize({
           client_id: GOOGLE_CLIENT_ID,
           callback: handleGoogleResponse,
+          ux_mode: 'popup',
+          allowed_parent_origin: [window.location.origin],
         });
 
         window.google.accounts.id.renderButton(
