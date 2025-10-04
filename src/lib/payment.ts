@@ -27,6 +27,13 @@ export interface PaymentOptions {
 // Load Razorpay SDK dynamically
 export const loadRazorpay = (): Promise<boolean> => {
   return new Promise((resolve) => {
+    // Force MOCK mode when using default test key
+    if (RAZORPAY_KEY_ID === 'rzp_test_XXXXX') {
+      console.info('💳 [MOCK PAYMENT] Skipping Razorpay SDK load (test key)');
+      resolve(false);
+      return;
+    }
+
     // If already loaded
     if (window.Razorpay) {
       resolve(true);
@@ -46,6 +53,14 @@ export const loadRazorpay = (): Promise<boolean> => {
 
 // Create Razorpay checkout instance
 export const createRazorpayCheckout = (options: PaymentOptions) => {
+  // Force mock mode when using default test key
+  if (RAZORPAY_KEY_ID === 'rzp_test_XXXXX') {
+    console.info('💳 [MOCK PAYMENT] Using mock checkout (test key)');
+    return {
+      open: () => mockPayment(options),
+    };
+  }
+
   // Check if Razorpay is loaded
   if (!window.Razorpay) {
     console.warn('⚠️ Razorpay not loaded. Using mock payment.');
@@ -81,7 +96,7 @@ export const createRazorpayCheckout = (options: PaymentOptions) => {
 // Mock payment for development/testing
 const mockPayment = (options: PaymentOptions): void => {
   console.log('💳 [MOCK PAYMENT] Initiating mock payment flow');
-  
+
   // Create a custom modal-like experience
   const overlay = document.createElement('div');
   overlay.style.cssText = `
@@ -149,9 +164,36 @@ const mockPayment = (options: PaymentOptions): void => {
   overlay.appendChild(modal);
   document.body.appendChild(overlay);
 
-  // Handle pay button
-  modal.querySelector('#mock-pay')?.addEventListener('click', () => {
-    document.body.removeChild(overlay);
+  // Lock scroll while modal is open
+  const prevOverflow = document.body.style.overflow;
+  document.body.style.overflow = 'hidden';
+
+  const unlockScroll = () => {
+    document.body.style.overflow = prevOverflow;
+    try {
+      document.documentElement.removeAttribute('data-scroll-locked');
+      document.body.removeAttribute('data-scroll-locked');
+      document.documentElement.style.pointerEvents = '';
+      document.body.style.pointerEvents = '';
+    } catch {}
+  };
+
+  const cleanup = () => {
+    if (overlay.parentNode) {
+      overlay.parentNode.removeChild(overlay);
+    }
+    unlockScroll();
+    document.removeEventListener('keydown', onKeyDown);
+  };
+
+  const onKeyDown = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      cancel();
+    }
+  };
+
+  const pay = () => {
+    cleanup();
     setTimeout(() => {
       const mockResponse = {
         razorpay_payment_id: `pay_mock_${Date.now()}`,
@@ -160,12 +202,11 @@ const mockPayment = (options: PaymentOptions): void => {
       };
       console.log('✅ [MOCK PAYMENT] Success:', mockResponse);
       options.onSuccess(mockResponse);
-    }, 500);
-  });
+    }, 300);
+  };
 
-  // Handle cancel button
-  modal.querySelector('#mock-cancel')?.addEventListener('click', () => {
-    document.body.removeChild(overlay);
+  const cancel = () => {
+    cleanup();
     setTimeout(() => {
       const mockError = {
         error: 'Payment cancelled by user',
@@ -173,13 +214,19 @@ const mockPayment = (options: PaymentOptions): void => {
       };
       console.log('❌ [MOCK PAYMENT] Cancelled:', mockError);
       options.onFailure(mockError);
-    }, 300);
-  });
+    }, 200);
+  };
+
+  document.addEventListener('keydown', onKeyDown);
+
+  // Handle buttons and overlay interaction
+  modal.querySelector('#mock-pay')?.addEventListener('click', pay);
+  modal.querySelector('#mock-cancel')?.addEventListener('click', cancel);
 
   // Close on overlay click
   overlay.addEventListener('click', (e) => {
     if (e.target === overlay) {
-      modal.querySelector('#mock-cancel')?.dispatchEvent(new Event('click'));
+      cancel();
     }
   });
 };
