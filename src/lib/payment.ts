@@ -1,6 +1,8 @@
 // Razorpay payment integration
 // Configure VITE_RAZORPAY_KEY_ID in .env for production
 
+import { USE_MOCK } from '@/services/api';
+
 declare global {
   interface Window {
     Razorpay: any;
@@ -27,15 +29,18 @@ export interface PaymentOptions {
 // Load Razorpay SDK dynamically
 export const loadRazorpay = (): Promise<boolean> => {
   return new Promise((resolve) => {
-    // Force MOCK mode when using default test key
-    if (RAZORPAY_KEY_ID === 'rzp_test_XXXXX') {
-      console.info('💳 [MOCK PAYMENT] Skipping Razorpay SDK load (test key)');
+    // Use mock mode when API is in mock mode
+    if (USE_MOCK) {
+      console.info('💳 [MOCK MODE] Using mock payment (API in mock mode)');
       resolve(false);
       return;
     }
 
-    // Real Razorpay key detected - load the SDK
-    console.info('💳 Loading Razorpay SDK with key:', RAZORPAY_KEY_ID);
+    // If already loaded
+    if (window.Razorpay) {
+      resolve(true);
+      return;
+    }
 
     // If already loaded
     if (window.Razorpay) {
@@ -56,15 +61,13 @@ export const loadRazorpay = (): Promise<boolean> => {
 
 // Create Razorpay checkout instance
 export const createRazorpayCheckout = (options: PaymentOptions) => {
-  // Force mock mode when using default test key
-  if (RAZORPAY_KEY_ID === 'rzp_test_XXXXX') {
-    console.info('💳 [MOCK PAYMENT] Using mock checkout (test key)');
+  // Use mock mode when API is in mock mode
+  if (USE_MOCK) {
+    console.info('💳 [MOCK MODE] Using mock checkout (API in mock mode)');
     return {
       open: () => mockPayment(options),
     };
   }
-
-  console.info('💳 Creating real Razorpay checkout with key:', RAZORPAY_KEY_ID);
 
   // Check if Razorpay is loaded
   if (!window.Razorpay) {
