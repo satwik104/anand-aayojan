@@ -11,6 +11,9 @@ const Auth = () => {
   const { isAuthenticated } = useAuth();
 
   useEffect(() => {
+    // Scroll to top when component mounts
+    window.scrollTo(0, 0);
+
     if (isAuthenticated) {
       const from = (location.state as any)?.from?.pathname || '/';
       navigate(from, { replace: true });

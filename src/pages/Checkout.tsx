@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAuthGate } from '@/components/AuthGate';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,6 +15,7 @@ import { ShoppingBag, CreditCard } from 'lucide-react';
 const Checkout = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
+  const { requireAuth, AuthModal } = useAuthGate();
   const { items, subtotal, clearCart } = useCart();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [address, setAddress] = useState({
@@ -26,14 +28,15 @@ const Checkout = () => {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      navigate('/auth', { state: { from: '/checkout' } });
+      requireAuth(() => {}, 'proceed to checkout');
+      navigate('/');
       return;
     }
 
     if (items.length === 0) {
       navigate('/products');
     }
-  }, [isAuthenticated, items, navigate]);
+  }, [isAuthenticated, items, navigate, requireAuth]);
 
   const handleCheckout = async () => {
     if (!user) return;
@@ -204,6 +207,7 @@ const Checkout = () => {
           </div>
         </div>
       </div>
+      <AuthModal />
     </div>
   );
 };

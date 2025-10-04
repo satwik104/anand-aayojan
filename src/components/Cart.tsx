@@ -4,6 +4,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { Badge } from '@/components/ui/badge';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAuthGate } from '@/components/AuthGate';
 import { ShoppingCart, Trash2, Plus, Minus, Package } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { useState } from 'react';
@@ -11,17 +12,15 @@ import { useState } from 'react';
 const Cart = () => {
   const { items, totalItems, removeItem, updateQuantity, serviceLockingTotal, productTotal, subtotal } = useCart();
   const { isAuthenticated } = useAuth();
+  const { requireAuth, AuthModal } = useAuthGate();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
 
   const handleCheckout = () => {
-    if (!isAuthenticated) {
-      navigate('/auth', { state: { from: { pathname: '/checkout' } } });
+    requireAuth(() => {
       setIsOpen(false);
-      return;
-    }
-    setIsOpen(false);
-    navigate('/checkout');
+      navigate('/checkout');
+    }, 'proceed to checkout');
   };
 
   return (
@@ -184,6 +183,7 @@ const Cart = () => {
           </div>
         )}
       </SheetContent>
+      <AuthModal />
     </Sheet>
   );
 };

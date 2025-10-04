@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -13,6 +13,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Service } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { AuthGate } from '@/components/AuthGate';
 import { bookingsApi, paymentsApi } from '@/services/api';
 import { initiateRazorpayPayment } from '@/lib/payment';
 
@@ -42,18 +43,6 @@ const BookingForm = ({ service, selectedPackageId, onClose }: BookingFormProps) 
   const { toast } = useToast();
   const { user, isAuthenticated } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Redirect to auth if not logged in - use useEffect to avoid rendering issues
-  useEffect(() => {
-    if (!isAuthenticated) {
-      onClose();
-      navigate('/auth');
-    }
-  }, [isAuthenticated, navigate, onClose]);
-
-  if (!isAuthenticated) {
-    return null;
-  }
 
   const selectedPackage = service.packages.find(p => p.id === selectedPackageId);
   if (!selectedPackage) return null;
@@ -155,7 +144,7 @@ const BookingForm = ({ service, selectedPackageId, onClose }: BookingFormProps) 
   tomorrow.setDate(tomorrow.getDate() + 1);
   const minDate = tomorrow.toISOString().split('T')[0];
 
-  return (
+  const bookingContent = (
     <div className="py-6">
       <div className="mb-6">
         <h2 className="text-2xl font-bold mb-2 font-serif">Complete Your Booking</h2>
@@ -385,6 +374,19 @@ const BookingForm = ({ service, selectedPackageId, onClose }: BookingFormProps) 
       </Form>
     </div>
   );
+
+  if (!isAuthenticated) {
+    return (
+      <AuthGate actionName="book this service">
+        {(execute) => {
+          execute(() => {});
+          return null;
+        }}
+      </AuthGate>
+    );
+  }
+
+  return bookingContent;
 };
 
 export default BookingForm;

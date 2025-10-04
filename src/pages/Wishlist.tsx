@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAuthGate } from '@/components/AuthGate';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,17 +8,19 @@ import { CircleAlert as AlertCircle, Heart, Trash2 } from 'lucide-react';
 
 const Wishlist = () => {
   const { isAuthenticated, user } = useAuth();
+  const { requireAuth, AuthModal } = useAuthGate();
   const navigate = useNavigate();
   const [wishlistItems, setWishlistItems] = useState<any[]>([]);
 
   useEffect(() => {
     if (!isAuthenticated) {
-      navigate('/auth');
+      requireAuth(() => {}, 'view your wishlist');
+      navigate('/');
       return;
     }
 
     loadWishlist();
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, requireAuth]);
 
   const loadWishlist = () => {
     // Load from localStorage for now (would be server-side in production)
@@ -95,6 +98,7 @@ const Wishlist = () => {
           )}
         </div>
       </div>
+      <AuthModal />
     </div>
   );
 };

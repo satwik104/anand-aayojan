@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAuthGate } from '@/components/AuthGate';
 import { useNavigate } from 'react-router-dom';
 import { ordersApi } from '@/services/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +11,7 @@ import { Calendar, Package, CircleAlert as AlertCircle } from 'lucide-react';
 
 const MyOrders = () => {
   const { isAuthenticated } = useAuth();
+  const { requireAuth, AuthModal } = useAuthGate();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [orders, setOrders] = useState<any[]>([]);
@@ -17,12 +19,13 @@ const MyOrders = () => {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      navigate('/auth');
+      requireAuth(() => {}, 'view your orders');
+      navigate('/');
       return;
     }
 
     loadOrders();
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, requireAuth]);
 
   const loadOrders = async () => {
     setLoading(true);
@@ -136,6 +139,7 @@ const MyOrders = () => {
           )}
         </div>
       </div>
+      <AuthModal />
     </div>
   );
 };

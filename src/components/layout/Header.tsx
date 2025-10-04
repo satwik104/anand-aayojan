@@ -8,10 +8,12 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { LogoFull } from '@/components/Logo';
 import Cart from '@/components/Cart';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAuthGate } from '@/components/AuthGate';
 
 const Header = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuth();
+  const { requireAuth, AuthModal } = useAuthGate();
   const [searchOpen, setSearchOpen] = useState(false);
 
   const navLinks = [
@@ -114,7 +116,7 @@ const Header = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button variant="outline" size="sm" onClick={() => navigate('/auth')} className="flex-shrink-0">
+              <Button variant="outline" size="sm" onClick={() => requireAuth(() => {}, 'continue')} className="flex-shrink-0">
                 Login
               </Button>
             )}
@@ -149,6 +151,7 @@ const Header = () => {
           </div>
         </div>
       </div>
+      <AuthModal />
     </header>
   );
 };
