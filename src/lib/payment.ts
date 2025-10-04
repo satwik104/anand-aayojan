@@ -7,7 +7,7 @@ declare global {
   }
 }
 
-const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_XXXXX';
+const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_RPN6RGLpFNGgIO';
 
 export interface PaymentOptions {
   orderId: string;
@@ -33,6 +33,9 @@ export const loadRazorpay = (): Promise<boolean> => {
       resolve(false);
       return;
     }
+
+    // Real Razorpay key detected - load the SDK
+    console.info('💳 Loading Razorpay SDK with key:', RAZORPAY_KEY_ID);
 
     // If already loaded
     if (window.Razorpay) {
@@ -60,6 +63,8 @@ export const createRazorpayCheckout = (options: PaymentOptions) => {
       open: () => mockPayment(options),
     };
   }
+
+  console.info('💳 Creating real Razorpay checkout with key:', RAZORPAY_KEY_ID);
 
   // Check if Razorpay is loaded
   if (!window.Razorpay) {
