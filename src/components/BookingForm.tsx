@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -43,9 +43,15 @@ const BookingForm = ({ service, selectedPackageId, onClose }: BookingFormProps) 
   const { user, isAuthenticated } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Redirect to auth if not logged in
+  // Redirect to auth if not logged in - use useEffect to avoid rendering issues
+  useEffect(() => {
+    if (!isAuthenticated) {
+      onClose();
+      navigate('/auth');
+    }
+  }, [isAuthenticated, navigate, onClose]);
+
   if (!isAuthenticated) {
-    navigate('/auth');
     return null;
   }
 

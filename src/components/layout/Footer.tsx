@@ -39,13 +39,13 @@ const Footer = () => {
             <h3 className="font-semibold mb-4">Quick Links</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/services" className="text-sm text-muted-foreground hover:text-primary transition-smooth">
+                <Link to="/services" onClick={() => window.scrollTo(0, 0)} className="text-sm text-muted-foreground hover:text-primary transition-smooth">
                   Our Services
                 </Link>
               </li>
               {isAuthenticated && (
                 <li>
-                  <Link to="/my-bookings" className="text-sm text-muted-foreground hover:text-primary transition-smooth">
+                  <Link to="/my-bookings" onClick={() => window.scrollTo(0, 0)} className="text-sm text-muted-foreground hover:text-primary transition-smooth">
                     My Bookings
                   </Link>
                 </li>
@@ -68,7 +68,7 @@ const Footer = () => {
             <h3 className="font-semibold mb-4">Legal</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/partner" className="text-sm text-muted-foreground hover:text-primary transition-smooth">
+                <Link to="/partner" onClick={() => window.scrollTo(0, 0)} className="text-sm text-muted-foreground hover:text-primary transition-smooth">
                   Be Our Partner
                 </Link>
               </li>
