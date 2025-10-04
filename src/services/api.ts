@@ -5,8 +5,9 @@
  * IMPORTANT: Set VITE_USE_MOCK=false and VITE_API_BASE_URL in .env to use real backend
  */
 
-// Real mode enabled for Google Sign-In (backend must be running)
-const USE_MOCK = false;
+// Mock mode enabled for testing in Lovable preview
+// Set USE_MOCK = false when backend is deployed and accessible
+const USE_MOCK = true;
 const API_BASE_URL = 'http://localhost:3001';
 
 // Get auth token from localStorage
