@@ -5,9 +5,9 @@
  * IMPORTANT: Set VITE_USE_MOCK=false and VITE_API_BASE_URL in .env to use real backend
  */
 
-// Use mock mode by default if no backend URL is configured or explicitly set to mock
-const USE_MOCK = import.meta.env.VITE_USE_MOCK !== 'false' && !import.meta.env.VITE_API_BASE_URL;
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+// Real mode enabled for Google Sign-In (backend must be running)
+const USE_MOCK = false;
+const API_BASE_URL = 'http://localhost:3001';
 
 // Get auth token from localStorage
 const getAuthToken = (): string | null => {

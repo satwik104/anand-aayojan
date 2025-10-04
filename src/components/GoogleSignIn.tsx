@@ -10,9 +10,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
-// PASTE YOUR GOOGLE_CLIENT_ID in .env as VITE_GOOGLE_CLIENT_ID
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-const USE_MOCK = !GOOGLE_CLIENT_ID || import.meta.env.VITE_USE_MOCK === 'true';
+// Google Client ID (publishable - safe for frontend)
+const GOOGLE_CLIENT_ID = '107063868685-bsc76l303te03md39qk2i331nehc2ih1.apps.googleusercontent.com';
+const USE_MOCK = false;
 
 interface GoogleSignInProps {
   onSuccess?: () => void;
