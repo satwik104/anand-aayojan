@@ -24,7 +24,7 @@ export const AuthGate = ({ children, onAuthenticated, actionName = 'this action'
     if (isAuthenticated) {
       action();
     } else {
-      setPendingAction(() => action);
+      setPendingAction(() => () => action());
       setShowAuthModal(true);
     }
   };
@@ -75,7 +75,7 @@ export const useAuthGate = (): UseAuthGateReturn => {
       action();
     } else {
       setActionName(name);
-      setPendingAction(() => action);
+      setPendingAction(() => () => action());
       setShowAuthModal(true);
     }
   };
