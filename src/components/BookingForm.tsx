@@ -375,18 +375,21 @@ const BookingForm = ({ service, selectedPackageId, onClose }: BookingFormProps) 
     </div>
   );
 
-  if (!isAuthenticated) {
-    return (
-      <AuthGate actionName="book this service">
-        {(execute) => {
+  return (
+    <AuthGate actionName="book this service">
+      {(execute) => {
+        if (!isAuthenticated) {
           execute(() => {});
-          return null;
-        }}
-      </AuthGate>
-    );
-  }
-
-  return bookingContent;
+          return (
+            <div className="py-6 text-center">
+              <p className="text-muted-foreground">Please sign in to continue with your booking</p>
+            </div>
+          );
+        }
+        return bookingContent;
+      }}
+    </AuthGate>
+  );
 };
 
 export default BookingForm;
